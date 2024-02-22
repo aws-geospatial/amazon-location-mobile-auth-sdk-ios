@@ -1,5 +1,7 @@
 import XCTest
 @testable import AmazonLocationiOSAuthSDK
+import AWSCore
+import AWSMobileClientXCF
 
 final class AuthHelperTests: XCTestCase {
     
@@ -16,5 +18,41 @@ final class AuthHelperTests: XCTestCase {
         let authHelper = AuthHelper()
         let authProvider = authHelper.authenticateWithAPIKey(apiKey: apiKey, region: region)
         XCTAssertEqual(authProvider.getAPIKey(), apiKey)
+    }
+    
+    func testAuthWithUserPoolID() throws {
+        let expectation = self.expectation(description: "Authentication completes")
+        let identityPoolID = "us-east-1:d9a96645-afa9-4ad2-b780-cac8be20aeeb"
+        let userPoolID = "us-east-1_bW9PR3CUP"
+        let clientId = "2s07mamf60ft2brf63csg9h9or"
+        let clientSecret: String? = nil
+        let username = "zesheikh1"
+        let password = "Ran&a123(xa1&12z"
+        let newPassword = "Ran&a123(xa1&12z"
+        let authHelper = AuthHelper()
+        authHelper.setNewPassword(newPassword)
+        _ = authHelper.authenticateWithCognitoUserPool(identityPoolId: identityPoolID, userPoolId: userPoolID, clientId: clientId, clientSecret: clientSecret, username: username, password: password) { result, error in
+
+            if let error = error as NSError? {
+                if error.domain == AWSCognitoIdentityProviderErrorDomain,
+                   let code = AWSCognitoIdentityProviderErrorType(rawValue: error.code) {
+                    switch code {
+                    case .passwordResetRequired:
+                        // Handle password reset required
+                        print("Password reset required")
+                        authHelper.changePasswordForUser(username: username, currentPassword: password, newPassword: newPassword, completion: { result, error in
+                            
+                        })
+                    default:
+                        print("Authentication error: \(error.localizedDescription)")
+                    }
+                }
+            } else {
+                // Successful authentication
+                print("Successful authentication \(String(describing: result?.refreshToken))")
+                expectation.fulfill()
+            }
+        }
+        waitForExpectations(timeout: 120, handler: nil)
     }
 }
