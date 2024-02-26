@@ -26,24 +26,33 @@ final class AuthHelperTests: XCTestCase {
         let userPoolID = "us-east-1_bW9PR3CUP"
         let clientId = "2s07mamf60ft2brf63csg9h9or"
         let clientSecret: String? = nil
-        let username = "zesheikh1"
+        let username = "zesheikh2"
         let password = "Ran&a123(xa1&12z"
         let newPassword = "Ran&a123(xa1&12z"
         
         let authHelper = AuthHelper()
         authHelper.setNewPassword(newPassword)
-        _ = authHelper.authenticateWithCognitoUserPool(identityPoolId: identityPoolID, userPoolId: userPoolID, clientId: clientId, clientSecret: clientSecret, username: username, password: password) { result, error in
+        
+        _ = authHelper.authenticateWithCognitoUserPool(identityPoolId: identityPoolID, userPoolId: userPoolID, clientId: clientId, clientSecret: clientSecret)
+        
+        authHelper.signIn(username: username, password: password) { result, error in
 
             if let error = error as NSError? {
-                if error.domain == AWSCognitoIdentityProviderErrorDomain,
-                   let code = AWSCognitoIdentityProviderErrorType(rawValue: error.code) {
+                print("adas")
+                if let code = AWSCognitoIdentityProviderErrorType(rawValue: error.code) {
                     switch code {
                     case .passwordResetRequired:
                         // Handle password reset required
                         print("Password reset required")
-                        authHelper.changePasswordForUser(username: username, currentPassword: password, newPassword: newPassword, completion: { result, error in
-                            
-                        })
+                        authHelper.confirmSignin(newPassword: newPassword) { result, error in
+                            if let error = error as NSError? {
+                                print("change password error: \(error)")
+                            }
+                            else {
+                                print("Successful authentication \(String(describing: result?.signInState))")
+                                expectation.fulfill()
+                            }
+                        }
                     default:
                         print("Authentication error: \(error.localizedDescription)")
                     }
@@ -54,6 +63,7 @@ final class AuthHelperTests: XCTestCase {
                 expectation.fulfill()
             }
         }
+        
         waitForExpectations(timeout: 120, handler: nil)
     }
 }

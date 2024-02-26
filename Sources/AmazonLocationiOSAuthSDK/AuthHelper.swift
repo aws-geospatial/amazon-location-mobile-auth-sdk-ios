@@ -45,7 +45,7 @@ public class AuthHelper {
         return credentialProvider
     }
     
-    public func authenticateWithCognitoUserPool(identityPoolId: String, userPoolId: String, clientId: String, clientSecret: String?, username: String, password: String, completion: @escaping (AWSMobileClientXCF.SignInResult?, Error?) -> Void) ->  LocationCredentialsProvider {
+    public func authenticateWithCognitoUserPool(identityPoolId: String, userPoolId: String, clientId: String, clientSecret: String?) ->  LocationCredentialsProvider {
         let regionType = toRegionType(identityPoolId: identityPoolId)
         let credentialProvider : LocationCredentialsProvider = LocationCredentialsProvider(regionType: regionType!, identityPoolId: identityPoolId)
 
@@ -61,9 +61,12 @@ public class AuthHelper {
         
         configureAWSMobileClient(identityPoolId: identityPoolId, userPoolId: userPoolId, clientId: clientId, clientSecret: clientSecret)
         
-        authenticateUser(username: username, password: password, credentialProvider: credentialProvider, completion: completion)
         return credentialProvider
     }
+    
+//    public func signIn(username: String, password: String, completion: @escaping (AWSMobileClientXCF.SignInResult?, Error?) -> Void) {
+//        authenticateUser(username: username, password: password, completion: completion)
+//    }
 
     func configureAWSMobileClient(identityPoolId: String, userPoolId: String, clientId: String, clientSecret: String?) {
         let region = toRegionString(identityPoolId: identityPoolId)
@@ -98,19 +101,7 @@ public class AuthHelper {
         
         AWSInfo.configureDefaultAWSInfo(configuration)
         
-        // Initialize AWSMobileClient with the inline JSON configuration
-//        AWSMobileClient.default().initialize(withConfiguration: jsonData) { data in
-//            //data
-////            if let error = error {
-////                print("Error initializing AWSMobileClient: \(error.localizedDescription)")
-////            } else if let userState = userState {
-////                print("AWSMobileClient initialized. Current UserState: \(userState.rawValue)")
-////            }
-//        }
-        
         AWSMobileClient.default().initialize {(userState, error) in
-            // Calling getIdentityId in order to force refresh the AWSMobileClient identityId to the latest one
-            //self?.addListener()
             print("AWS login?: \(AWSMobileClient.default().isSignedIn)")
             
             if let userState = userState {
@@ -130,6 +121,31 @@ public class AuthHelper {
         }
     }
     
+    func signIn(username: String, password: String, completion: @escaping (AWSMobileClientXCF.SignInResult?, NSError?) -> Void) {
+
+        AWSMobileClient.default().signIn(username: username, password: password) { (signInResult, error) in
+            DispatchQueue.main.async {
+                if let error = error {
+                    completion(nil, error as NSError)
+                } else if let signInResult = signInResult {
+                    switch (signInResult.signInState) {
+                    case .signedIn:
+                        completion(signInResult, nil)
+                    case .newPasswordRequired:
+                                   // Handle the requirement for a new password
+                                   // Prompt the user to set a new password
+                                   // You may need to collect additional required attributes if your Cognito User Pool configuration requires them
+                        
+                        completion(nil, NSError(domain: "AuthDomain", code: AWSCognitoIdentityProviderErrorType.passwordResetRequired.rawValue, userInfo: [NSLocalizedDescriptionKey: "Sign In Failed with state: \(signInResult.signInState)"]))
+                                   // Optionally, redirect the user to your new password UI here
+                    default:
+                        completion(nil, NSError(domain: "AuthDomain", code: -1001, userInfo: [NSLocalizedDescriptionKey: "Sign In Failed with state: \(signInResult.signInState)"]))
+                    }
+                }
+            }
+        }
+    }
+    
     func authenticateUser1(username: String, password: String, credentialProvider : LocationCredentialsProvider, completion: @escaping (AWSCognitoIdentityUserSession?, Error?) -> Void) {
         let pool = AWSCognitoIdentityUserPool(forKey: "UserPool")
         pool?.delegate = self
@@ -143,26 +159,43 @@ public class AuthHelper {
         }
     }
     
-    
-    func authenticateUser(username: String, password: String, credentialProvider : LocationCredentialsProvider, completion: @escaping (AWSMobileClientXCF.SignInResult?, Error?) -> Void) {
-
-        AWSMobileClient.default().signIn(username: username, password: password) { (signInResult, error) in
+    public func confirmSignin(newPassword: String, completion: @escaping (AWSMobileClientXCF.SignInResult?, NSError?) -> Void) {
+        let additionalAttributes: [String: String] = [:] // Example: ["email": "user@example.com"]
+        
+        AWSMobileClient.default().confirmSignIn(challengeResponse: newPassword, userAttributes: additionalAttributes) { (confirmSignInResult, error) in
             DispatchQueue.main.async {
                 if let error = error {
-                    completion(nil, error)
-                } else if let signInResult = signInResult {
-                    switch (signInResult.signInState) {
+                    // Handle error
+                    completion(nil, error as NSError)
+                } else if let confirmSignInResult = confirmSignInResult {
+                    switch confirmSignInResult.signInState {
                     case .signedIn:
-                        completion(signInResult, nil)
+                        // The new password has been set, and the user is signed in
+                        completion(confirmSignInResult, nil)
                     default:
-                        completion(nil, NSError(domain: "AuthDomain", code: -1001, userInfo: [NSLocalizedDescriptionKey: "Sign In Failed with state: \(signInResult.signInState)"]))
+                        // Handle other states if necessary
+                        completion(nil, NSError(domain: "AuthDomain", code: -1004, userInfo: [NSLocalizedDescriptionKey: "Failed to set new password with state: \(confirmSignInResult.signInState)"]))
                     }
                 }
             }
         }
     }
 
-    public func changePasswordForUser(username: String, currentPassword: String, newPassword: String, completion: @escaping (AWSCognitoIdentityUserChangePasswordResponse?, Error?) -> Void) {
+    public func changePasswordForUser(username: String, currentPassword: String, newPassword: String, completion: @escaping (Error?) -> Void) {
+        //let pool = AWSCognitoIdentityUserPool(forKey: "UserPool")
+        //let user = pool?.getUser(username)
+        //self.newPassword = newPassword
+        AWSMobileClient.default().changePassword(currentPassword: currentPassword, proposedPassword: newPassword, completionHandler: { error in
+                if let error = error {
+                    // Handle error
+                    completion(error)
+                } else {
+                    completion(nil)
+                }
+        })
+    }
+    
+    public func changePasswordForUser1(username: String, currentPassword: String, newPassword: String, completion: @escaping (AWSCognitoIdentityUserChangePasswordResponse?, Error?) -> Void) {
         let pool = AWSCognitoIdentityUserPool(forKey: "UserPool")
         let user = pool?.getUser(username)
         self.newPassword = newPassword
@@ -181,7 +214,6 @@ public class AuthHelper {
             return nil
         }
     }
-    
     
     private func toRegionType(identityPoolId: String) -> AWSRegionType? {
         var region: AWSRegionType?
