@@ -121,7 +121,7 @@ public class AuthHelper {
         }
     }
     
-    func signIn(username: String, password: String, completion: @escaping (AWSMobileClientXCF.SignInResult?, NSError?) -> Void) {
+    public func signIn(username: String, password: String, completion: @escaping (AWSMobileClientXCF.SignInResult?, NSError?) -> Void) {
 
         AWSMobileClient.default().signIn(username: username, password: password) { (signInResult, error) in
             DispatchQueue.main.async {
