@@ -29,6 +29,7 @@ final class AuthHelperTests: XCTestCase {
         let username = "zesheikh1"
         let password = "Ran&a123(xa1&12z"
         let newPassword = "Ran&a123(xa1&12z"
+        
         let authHelper = AuthHelper()
         authHelper.setNewPassword(newPassword)
         _ = authHelper.authenticateWithCognitoUserPool(identityPoolId: identityPoolID, userPoolId: userPoolID, clientId: clientId, clientSecret: clientSecret, username: username, password: password) { result, error in
@@ -49,7 +50,7 @@ final class AuthHelperTests: XCTestCase {
                 }
             } else {
                 // Successful authentication
-                print("Successful authentication \(String(describing: result?.refreshToken))")
+                print("Successful authentication \(String(describing: result?.signInState))")
                 expectation.fulfill()
             }
         }

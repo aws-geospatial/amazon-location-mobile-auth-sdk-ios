@@ -45,9 +45,11 @@ public class AuthHelper {
         return credentialProvider
     }
     
-    public func authenticateWithCognitoUserPool(identityPoolId: String, userPoolId: String, clientId: String, clientSecret: String?, username: String, password: String, completion: @escaping (AWSCognitoIdentityUserSession?, Error?) -> Void) ->  LocationCredentialsProvider {
+    public func authenticateWithCognitoUserPool(identityPoolId: String, userPoolId: String, clientId: String, clientSecret: String?, username: String, password: String, completion: @escaping (AWSMobileClientXCF.SignInResult?, Error?) -> Void) ->  LocationCredentialsProvider {
         let regionType = toRegionType(identityPoolId: identityPoolId)
         let credentialProvider : LocationCredentialsProvider = LocationCredentialsProvider(regionType: regionType!, identityPoolId: identityPoolId)
+
+        
         let configuration = AWSServiceConfiguration(
             region: regionType!,
             credentialsProvider: credentialProvider.getCognitoProvider()
@@ -56,11 +58,79 @@ public class AuthHelper {
         
         AWSCognitoIdentityUserPool.register(with: configuration, userPoolConfiguration: userPoolConfiguration, forKey: "UserPool")
         AWSServiceManager.default().defaultServiceConfiguration = configuration
-        authenticateUser(username: username, password: password, completion: completion)
+        
+        configureAWSMobileClient(identityPoolId: identityPoolId, userPoolId: userPoolId, clientId: clientId, clientSecret: clientSecret)
+        
+        authenticateUser(username: username, password: password, credentialProvider: credentialProvider, completion: completion)
         return credentialProvider
     }
 
-    func authenticateUser(username: String, password: String, completion: @escaping (AWSCognitoIdentityUserSession?, Error?) -> Void) {
+    func configureAWSMobileClient(identityPoolId: String, userPoolId: String, clientId: String, clientSecret: String?) {
+        let region = toRegionString(identityPoolId: identityPoolId)
+        // Construct the inline JSON configuration
+        let configuration: [String: Any] = [
+            "IdentityManager": [
+                "Default": [:]
+            ],
+            "CredentialsProvider": [
+                "CognitoIdentity": [
+                    "Default": [
+                        "PoolId": identityPoolId,
+                        "Region": region
+                    ]
+                ]
+            ],
+            "CognitoUserPool": [
+                "Default": [
+                    "PoolId": userPoolId,
+                    "AppClientId": clientId,
+//                    "AppClientSecret": clientSecret ?? "",
+                    "Region": region
+                ]
+            ]
+        ]
+        
+        // Convert the configuration dictionary to JSON data
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: configuration, options: []) else {
+            print("Error: Unable to serialize configuration to JSON")
+            return
+        }
+        
+        AWSInfo.configureDefaultAWSInfo(configuration)
+        
+        // Initialize AWSMobileClient with the inline JSON configuration
+//        AWSMobileClient.default().initialize(withConfiguration: jsonData) { data in
+//            //data
+////            if let error = error {
+////                print("Error initializing AWSMobileClient: \(error.localizedDescription)")
+////            } else if let userState = userState {
+////                print("AWSMobileClient initialized. Current UserState: \(userState.rawValue)")
+////            }
+//        }
+        
+        AWSMobileClient.default().initialize {(userState, error) in
+            // Calling getIdentityId in order to force refresh the AWSMobileClient identityId to the latest one
+            //self?.addListener()
+            print("AWS login?: \(AWSMobileClient.default().isSignedIn)")
+            
+            if let userState = userState {
+                switch userState {
+                case .signedIn:
+                    print("Logged In")
+                    AWSMobileClient.default().getTokens {tokens, error in
+                        print("tokens: \(String(describing: tokens))")
+                    }
+                default:
+                    print("none")
+                }
+            } else if let error = error {
+                print(error.localizedDescription)
+                return
+            }
+        }
+    }
+    
+    func authenticateUser1(username: String, password: String, credentialProvider : LocationCredentialsProvider, completion: @escaping (AWSCognitoIdentityUserSession?, Error?) -> Void) {
         let pool = AWSCognitoIdentityUserPool(forKey: "UserPool")
         pool?.delegate = self
         let user = pool?.getUser(username)
@@ -70,6 +140,25 @@ public class AuthHelper {
                 completion(task.result, task.error)
             }
             return nil
+        }
+    }
+    
+    
+    func authenticateUser(username: String, password: String, credentialProvider : LocationCredentialsProvider, completion: @escaping (AWSMobileClientXCF.SignInResult?, Error?) -> Void) {
+
+        AWSMobileClient.default().signIn(username: username, password: password) { (signInResult, error) in
+            DispatchQueue.main.async {
+                if let error = error {
+                    completion(nil, error)
+                } else if let signInResult = signInResult {
+                    switch (signInResult.signInState) {
+                    case .signedIn:
+                        completion(signInResult, nil)
+                    default:
+                        completion(nil, NSError(domain: "AuthDomain", code: -1001, userInfo: [NSLocalizedDescriptionKey: "Sign In Failed with state: \(signInResult.signInState)"]))
+                    }
+                }
+            }
         }
     }
 
