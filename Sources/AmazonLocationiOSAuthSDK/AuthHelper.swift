@@ -70,7 +70,18 @@ public class AuthHelper {
 
     func configureAWSMobileClient(identityPoolId: String, userPoolId: String, clientId: String, clientSecret: String?) {
         let region = toRegionString(identityPoolId: identityPoolId)
-        // Construct the inline JSON configuration
+
+        
+        var cognitoUserPoolDict: [String: Any] = [
+            "PoolId": userPoolId,
+            "AppClientId": clientId,
+            "Region": region
+        ]
+        
+        if let clientSecret = clientSecret {
+            cognitoUserPoolDict["AppClientSecret"] = clientSecret
+        }
+        
         let configuration: [String: Any] = [
             "IdentityManager": [
                 "Default": [:]
@@ -84,12 +95,7 @@ public class AuthHelper {
                 ]
             ],
             "CognitoUserPool": [
-                "Default": [
-                    "PoolId": userPoolId,
-                    "AppClientId": clientId,
-//                    "AppClientSecret": clientSecret ?? "",
-                    "Region": region
-                ]
+                "Default": cognitoUserPoolDict
             ]
         ]
         
