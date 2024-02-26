@@ -124,7 +124,6 @@ public class AuthHelper {
     public func signIn(username: String, password: String, completion: @escaping (AWSMobileClientXCF.SignInResult?, NSError?) -> Void) {
 
         AWSMobileClient.default().signIn(username: username, password: password) { (signInResult, error) in
-            DispatchQueue.main.async {
                 if let error = error {
                     completion(nil, error as NSError)
                 } else if let signInResult = signInResult {
@@ -142,8 +141,11 @@ public class AuthHelper {
                         completion(nil, NSError(domain: "AuthDomain", code: -1001, userInfo: [NSLocalizedDescriptionKey: "Sign In Failed with state: \(signInResult.signInState)"]))
                     }
                 }
-            }
         }
+    }
+    
+    public func signOut(completion: @escaping (Error?) -> Void) {
+        AWSMobileClient.default().signOut(completionHandler: completion)
     }
     
     func authenticateUser1(username: String, password: String, credentialProvider : LocationCredentialsProvider, completion: @escaping (AWSCognitoIdentityUserSession?, Error?) -> Void) {
