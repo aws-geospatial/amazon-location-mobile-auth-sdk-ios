@@ -63,10 +63,6 @@ public class AuthHelper {
         
         return credentialProvider
     }
-    
-//    public func signIn(username: String, password: String, completion: @escaping (AWSMobileClientXCF.SignInResult?, Error?) -> Void) {
-//        authenticateUser(username: username, password: password, completion: completion)
-//    }
 
     func configureAWSMobileClient(identityPoolId: String, userPoolId: String, clientId: String, clientSecret: String?) {
         let region = toRegionString(identityPoolId: identityPoolId)
@@ -137,10 +133,6 @@ public class AuthHelper {
                     case .signedIn:
                         completion(signInResult, nil)
                     case .newPasswordRequired:
-                                   // Handle the requirement for a new password
-                                   // Prompt the user to set a new password
-                                   // You may need to collect additional required attributes if your Cognito User Pool configuration requires them
-                        
                         completion(nil, NSError(domain: "AuthDomain", code: AWSCognitoIdentityProviderErrorType.passwordResetRequired.rawValue, userInfo: [NSLocalizedDescriptionKey: "Sign In Failed with state: \(signInResult.signInState)"]))
                                    // Optionally, redirect the user to your new password UI here
                     default:
@@ -154,34 +146,18 @@ public class AuthHelper {
         AWSMobileClient.default().signOut(completionHandler: completion)
     }
     
-    func authenticateUser1(username: String, password: String, credentialProvider : LocationCredentialsProvider, completion: @escaping (AWSCognitoIdentityUserSession?, Error?) -> Void) {
-        let pool = AWSCognitoIdentityUserPool(forKey: "UserPool")
-        pool?.delegate = self
-        let user = pool?.getUser(username)
-        
-        user?.getSession(username, password: password, validationData: nil).continueWith { (task) -> Any? in
-            DispatchQueue.main.async {
-                completion(task.result, task.error)
-            }
-            return nil
-        }
-    }
-    
     public func confirmSignin(newPassword: String, completion: @escaping (AWSMobileClientXCF.SignInResult?, NSError?) -> Void) {
-        let additionalAttributes: [String: String] = [:] // Example: ["email": "user@example.com"]
+        let additionalAttributes: [String: String] = [:]
         
         AWSMobileClient.default().confirmSignIn(challengeResponse: newPassword, userAttributes: additionalAttributes) { (confirmSignInResult, error) in
             DispatchQueue.main.async {
                 if let error = error {
-                    // Handle error
                     completion(nil, error as NSError)
                 } else if let confirmSignInResult = confirmSignInResult {
                     switch confirmSignInResult.signInState {
                     case .signedIn:
-                        // The new password has been set, and the user is signed in
                         completion(confirmSignInResult, nil)
                     default:
-                        // Handle other states if necessary
                         completion(nil, NSError(domain: "AuthDomain", code: -1004, userInfo: [NSLocalizedDescriptionKey: "Failed to set new password with state: \(confirmSignInResult.signInState)"]))
                     }
                 }
@@ -190,12 +166,8 @@ public class AuthHelper {
     }
 
     public func changePasswordForUser(username: String, currentPassword: String, newPassword: String, completion: @escaping (Error?) -> Void) {
-        //let pool = AWSCognitoIdentityUserPool(forKey: "UserPool")
-        //let user = pool?.getUser(username)
-        //self.newPassword = newPassword
         AWSMobileClient.default().changePassword(currentPassword: currentPassword, proposedPassword: newPassword, completionHandler: { error in
                 if let error = error {
-                    // Handle error
                     completion(error)
                 } else {
                     completion(nil)
@@ -210,11 +182,9 @@ public class AuthHelper {
         user?.changePassword(currentPassword, proposedPassword: newPassword).continueWith { (task) -> Any? in
             DispatchQueue.main.async {
                 if let error = task.error {
-                    // Handle the error
                     print("Error changing password: \(error.localizedDescription)")
                     completion(nil, task.error)
                 } else {
-                    // Password change was successful
                     print("Password changed successfully")
                     completion(task.result, task.error)
                 }
