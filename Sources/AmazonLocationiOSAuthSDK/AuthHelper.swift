@@ -95,12 +95,6 @@ public class AuthHelper {
             ]
         ]
         
-        // Convert the configuration dictionary to JSON data
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: configuration, options: []) else {
-            print("Error: Unable to serialize configuration to JSON")
-            return
-        }
-        
         AWSInfo.configureDefaultAWSInfo(configuration)
         
         AWSMobileClient.default().initialize {(userState, error) in
