@@ -131,7 +131,7 @@ public class AuthHelper {
 
         AWSMobileClient.default().signIn(username: username, password: password) { (signInResult, error) in
                 if let error = error {
-                    completion(nil, error as NSError)
+                    completion(nil, NSError(domain: "AuthDomain", code: AWSCognitoIdentityProviderErrorType.invalidParameter.rawValue, userInfo: [NSLocalizedDescriptionKey: "\(error.localizedDescription)"]))
                 } else if let signInResult = signInResult {
                     switch (signInResult.signInState) {
                     case .signedIn:
