@@ -5,40 +5,61 @@ import AWSMobileClientXCF
 
 final class AuthHelperTests: XCTestCase {
     
+    func readTestConfig() -> [String: String] {
+        // Implement reading from your chosen config file. This is an example for a plist.
+        guard let plistURL = Bundle.module.url(forResource: "TestConfig", withExtension: "plist"),
+              let plistData = try? Data(contentsOf: plistURL) else {
+            fatalError("Test configuration file not found.")
+        }
+        do {
+            if let plistDict = try PropertyListSerialization.propertyList(from: plistData, options: [], format: nil) as? [String: String] {
+                return plistDict
+            }
+        } catch {
+            XCTFail("Error reading plist: \(error)")
+        }
+        return [:]
+    }
+    
     func testAuthWithIdentityPoolID() throws {
-        let identityPoolID = "us-east-1:d9a96645-afa9-4ad2-b780-cac8be20aeeb"
+        let config = readTestConfig()
+        
+        let identityPoolID = config["identityPoolID"]!
         let authHelper = AuthHelper()
         let authProvider = authHelper.authenticateWithCognitoUserPool(identityPoolId: identityPoolID)
         XCTAssertEqual(authProvider.getIdentityPoolId(), identityPoolID)
     }
     
     func testAuthWithAPIKey() throws {
-        let apiKey = "DummyAPIKey"
-        let region = "us-east-1"
+        let config = readTestConfig()
+        
+        let apiKey = config["apiKey"]!
+        let region = config["region"]!
         let authHelper = AuthHelper()
         let authProvider = authHelper.authenticateWithAPIKey(apiKey: apiKey, region: region)
         XCTAssertEqual(authProvider.getAPIKey(), apiKey)
     }
     
-    func testAuthWithUserPoolID() throws {
-        let expectation = self.expectation(description: "Authentication completes")
-        let identityPoolID = "us-east-1:d9a96645-afa9-4ad2-b780-cac8be20aeeb"
-        let userPoolID = "us-east-1_bW9PR3CUP"
-        let clientId = "2s07mamf60ft2brf63csg9h9or"
+    func testSigninWithUserPoolID() throws {
+        let config = readTestConfig()
+        
+        let identityPoolID = config["identityPoolID"]!
+        let userPoolID = config["userPoolID"]!
+        let clientId = config["clientId"]!
         let clientSecret: String? = nil
-        let username = "zesheikh2"
-        let password = "Ran&a123(xa1&12z"
-        let newPassword = "Ran&a123(xa1&12z"
+        let username = config["username"]!
+        let password = config["password"]!
+        let newPassword = config["newPassword"]!
+        
+        let expectation = self.expectation(description: "Authentication completes")
         
         let authHelper = AuthHelper()
-        authHelper.setNewPassword(newPassword)
         
         _ = authHelper.authenticateWithCognitoUserPool(identityPoolId: identityPoolID, userPoolId: userPoolID, clientId: clientId, clientSecret: clientSecret)
         
         authHelper.signIn(username: username, password: password) { result, error in
-
+            
             if let error = error as NSError? {
-                print("adas")
                 if let code = AWSCognitoIdentityProviderErrorType(rawValue: error.code) {
                     switch code {
                     case .passwordResetRequired:
@@ -65,5 +86,26 @@ final class AuthHelperTests: XCTestCase {
         }
         
         waitForExpectations(timeout: 120, handler: nil)
+    }
+    
+    func testReadPlist() {
+        guard let plistURL = Bundle.module.url(forResource: "TestConfig", withExtension: "plist"),
+              let plistData = try? Data(contentsOf: plistURL) else {
+            XCTFail("Failed to read plist file")
+            return
+        }
+        
+        do {
+            if let plistDict = try PropertyListSerialization.propertyList(from: plistData, options: [], format: nil) as? [String: Any] {
+                print(plistData)
+                // Now you can use plistDict as a normal dictionary
+                if let identityPoolID = plistDict["identityPoolID"] as? String {
+                    // Use your config value here
+                    print(identityPoolID)
+                }
+            }
+        } catch {
+            XCTFail("Error reading plist: \(error)")
+        }
     }
 }
