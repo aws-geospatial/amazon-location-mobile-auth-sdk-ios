@@ -1,5 +1,6 @@
 import AWSCore
 import AWSMobileClientXCF
+import AWSLocationXCF
 
 public class AuthHelper {
 
@@ -38,5 +39,9 @@ public class AuthHelper {
         credentialProvider.setAPIKey(apiKey: apiKey)
         credentialProvider.setRegion(region: region)
         return credentialProvider
+    }
+    
+    public func getLocationClient() -> AWSLocation {
+       return AWSLocation.default()
     }
 }
