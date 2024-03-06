@@ -152,16 +152,6 @@ public class AuthHelper {
             }
         }
     }
-
-    public func changePasswordForUser(username: String, currentPassword: String, newPassword: String, completion: @escaping (Error?) -> Void) {
-        AWSMobileClient.default().changePassword(currentPassword: currentPassword, proposedPassword: newPassword, completionHandler: { error in
-                if let error = error {
-                    completion(error)
-                } else {
-                    completion(nil)
-                }
-        })
-    }
     
     private func toRegionType(identityPoolId: String) -> AWSRegionType? {
         var region: AWSRegionType?
