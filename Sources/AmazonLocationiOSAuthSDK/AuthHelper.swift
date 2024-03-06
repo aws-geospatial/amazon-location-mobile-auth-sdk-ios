@@ -19,7 +19,7 @@ public class AuthHelper {
     }
     
     public func authenticateWithCognitoUserPool(identityPoolId: String) -> LocationCredentialsProvider {
-        let regionType = toRegionType(identityPoolId: identityPoolId)
+        let regionType = AWSEndpoint.toRegionType(identityPoolId: identityPoolId)
         
         let credentialProvider : LocationCredentialsProvider = LocationCredentialsProvider(regionType: regionType!, identityPoolId: identityPoolId)
         
@@ -40,7 +40,7 @@ public class AuthHelper {
     }
     
     public func authenticateWithCognitoUserPool(identityPoolId: String, userPoolId: String, clientId: String, clientSecret: String?) ->  LocationCredentialsProvider {
-        let regionType = toRegionType(identityPoolId: identityPoolId)
+        let regionType = AWSEndpoint.toRegionType(identityPoolId: identityPoolId)
         let credentialProvider : LocationCredentialsProvider = LocationCredentialsProvider(regionType: regionType!, identityPoolId: identityPoolId)
 
         
@@ -59,7 +59,7 @@ public class AuthHelper {
     }
 
     func configureAWSMobileClient(identityPoolId: String, userPoolId: String, clientId: String, clientSecret: String?) {
-        let region = toRegionString(identityPoolId: identityPoolId)
+        let region = AWSEndpoint.toRegionString(identityPoolId: identityPoolId)
 
         
         var cognitoUserPoolDict: [String: Any] = [
@@ -95,15 +95,7 @@ public class AuthHelper {
             print("AWS login?: \(AWSMobileClient.default().isSignedIn)")
             
             if let userState = userState {
-                switch userState {
-                case .signedIn:
-                    print("Logged In")
-                    AWSMobileClient.default().getTokens {tokens, error in
-                        print("tokens: \(String(describing: tokens))")
-                    }
-                default:
-                    print("none")
-                }
+                print("user State \(userState)")
             } else if let error = error {
                 print(error.localizedDescription)
                 return
@@ -151,24 +143,6 @@ public class AuthHelper {
                 }
             }
         }
-    }
-    
-    private func toRegionType(identityPoolId: String) -> AWSRegionType? {
-        var region: AWSRegionType?
-    
-        if let stringRegion = identityPoolId.components(separatedBy: ":").first {
-            
-            if let extractedRegion = AWSEndpoint.regionTypeByString(regionString: stringRegion) {
-                region = extractedRegion
-            } else {
-                print("Invalid region: \(stringRegion)")
-            }
-        }
-        return region
-    }
-    
-    private func toRegionString(identityPoolId: String) -> String {
-        return identityPoolId.components(separatedBy: ":").first ?? identityPoolId
     }
 }
 
