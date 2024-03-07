@@ -26,6 +26,7 @@ public class LocationCredentialsProvider {
     }
     
     public func getAPIKey() -> String? {
+        self.apiProvider?.apiKey = KeyChainHelper.get(key: .AmazonLocationAPIKey)
         return self.apiProvider?.apiKey
     }
     

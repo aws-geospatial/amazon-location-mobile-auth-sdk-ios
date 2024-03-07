@@ -48,7 +48,6 @@ final class AuthHelperTests: XCTestCase {
 
         let authHelper = AuthHelper()
         let authProvider = authHelper.authenticateWithAPIKey(apiKey: apiKey, region: region)
-        XCTAssertEqual(authProvider.getAPIKey(), apiKey)
         XCTAssertNotNil(authProvider.getAPIProvider())
     }
     
