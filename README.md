@@ -2,13 +2,52 @@
 
 These utilities help you authenticate when when making [Amazon Location Service](https://aws.amazon.com/location/) API calls from their iOS applications. This specifically helps when using [Amazon Cognito](https://docs.aws.amazon.com/location/latest/developerguide/authenticating-using-cognito.html) or [API keys](https://docs.aws.amazon.com/location/latest/developerguide/using-apikeys.html) as the authentication method.
 
+## Installation
+
+1. Go to File -> Add Package Dependencies in your XCode project.
+2. Type the package URL (https://github.com/aws-geospatial/amazon-location-mobile-auth-sdk-ios/) into the search bar and press the enter key. 
+3. Select the "amazon-location-mobile-auth-sdk-ios" package and click on "Add Package".
+4. Select the "AmazonLocationiOSAuthSDK" package product and click on "Add Package".
+
 ## Usage
 
-Import the library and call the utility functions in the top-level namespace as needed. You can find more details about these functions in the [Documentation](#documentation) section.
+After installing the library, import the AuthHelper class in an activity:
 
-## Documentation
+```
+import AmazonLocationiOSAuthSDK
+import AWSLocationXCF
+```
 
-Detailed documentation is available on the Amazon Location Service documentation website: https://docs.aws.amazon.com/location/latest/developerguide/using-amazon-location.html
+You can create an AuthHelper and use it with the AWS SDK:
+
+```
+// Create an authentication helper instance using an Amazon Location API Key
+func exampleAPIKeyLogin() {
+    let authHelper = AuthHelper()
+    let locationCredentialsProvider = authHelper.authenticateWithAPIKey(apiKey: "My-Amazon-Location-API-Key", region: "us-east-1")
+    let locationClient = authHelper.getLocationClient()
+}
+```
+
+```
+// Create an authentication helper using credentials from Cognito
+func exampleCognitoLogin() {
+    let authHelper = AuthHelper()
+    let locationCredentialsProvider = authHelper.authenticateWithCognitoUserPool(identityPoolId: "My-Cognito-Identity-Pool-Id", region: "us-east-1")
+    let locationClient = authHelper.getLocationClient()
+}
+```
+
+You can use the location client to make calls to Amazon Location Service. Here is an example that searches for places near a specified latitude and longitude:
+
+```
+let searchPlaceIndexForPositionRequest = AWSLocationSearchPlaceIndexForPositionRequest()!
+
+searchPlaceIndexForPositionRequest.indexName = "My-Place-Index-Name"
+searchPlaceIndexForPositionRequest.position = [30.405423, -97.718833]
+
+let nearbyPlaces = locationClient.searchPlaceIndex(forPosition: searchPlaceIndexForPositionRequest)
+```
 
 ## Security
 

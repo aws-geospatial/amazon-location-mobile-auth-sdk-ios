@@ -1,5 +1,6 @@
 import AWSCore
 import AWSMobileClientXCF
+import AWSLocationXCF
 
 public class AuthHelper {
     public init() {
@@ -143,6 +144,10 @@ public class AuthHelper {
                 }
             }
         }
+    }
+    
+    public func getLocationClient() -> AWSLocation {
+       return AWSLocation.default()
     }
 }
 

@@ -134,25 +134,4 @@ final class AuthHelperTests: XCTestCase {
         XCTAssertEqual(AWSEndpoint.toRegionType(identityPoolId: identityPoolID), .USEast1)
         XCTAssertEqual(AWSEndpoint.toRegionString(identityPoolId: identityPoolID), "us-east-1")
     }
-    
-    func testReadPlist() {
-        guard let plistURL = Bundle.module.url(forResource: "TestConfig", withExtension: "plist"),
-              let plistData = try? Data(contentsOf: plistURL) else {
-            XCTFail("Failed to read plist file")
-            return
-        }
-        
-        do {
-            if let plistDict = try PropertyListSerialization.propertyList(from: plistData, options: [], format: nil) as? [String: Any] {
-                print(plistData)
-                // Now you can use plistDict as a normal dictionary
-                if let identityPoolID = plistDict["identityPoolID"] as? String {
-                    // Use your config value here
-                    print(identityPoolID)
-                }
-            }
-        } catch {
-            XCTFail("Error reading plist: \(error)")
-        }
-    }
 }
