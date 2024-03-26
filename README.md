@@ -13,14 +13,14 @@ These utilities help you authenticate when when making [Amazon Location Service]
 
 After installing the library, import the AuthHelper class in an activity:
 
-```
+``` swift
 import AmazonLocationiOSAuthSDK
 import AWSLocationXCF
 ```
 
 You can create an AuthHelper and use it with the AWS SDK:
 
-```
+``` swift
 // Create an authentication helper instance using an Amazon Location API Key
 func exampleAPIKeyLogin() {
     let authHelper = AuthHelper()
@@ -29,7 +29,7 @@ func exampleAPIKeyLogin() {
 }
 ```
 
-```
+``` swift
 // Create an authentication helper using credentials from Cognito
 func exampleCognitoLogin() {
     let authHelper = AuthHelper()
@@ -40,7 +40,7 @@ func exampleCognitoLogin() {
 
 You can use the location client to make calls to Amazon Location Service. Here is an example that searches for places near a specified latitude and longitude:
 
-```
+``` swift
 let searchPlaceIndexForPositionRequest = AWSLocationSearchPlaceIndexForPositionRequest()!
 
 searchPlaceIndexForPositionRequest.indexName = "My-Place-Index-Name"
