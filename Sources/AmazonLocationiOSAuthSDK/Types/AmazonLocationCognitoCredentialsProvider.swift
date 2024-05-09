@@ -1,5 +1,3 @@
-import Foundation
-
 public class AmazonLocationCognitoCredentialsProvider {
     internal var identityPoolId: String?
     internal var region: String?

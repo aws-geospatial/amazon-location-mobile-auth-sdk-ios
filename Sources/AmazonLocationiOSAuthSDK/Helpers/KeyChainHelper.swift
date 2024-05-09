@@ -1,4 +1,3 @@
-import Foundation
 import KeychainSwift
 
 enum KeyChainType: String {

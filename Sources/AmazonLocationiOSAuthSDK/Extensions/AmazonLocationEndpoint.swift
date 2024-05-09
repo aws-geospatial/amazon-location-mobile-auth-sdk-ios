@@ -1,4 +1,3 @@
-import Foundation
 public enum AmazonLocationRegionType: String {
     case USEast1 = "us-east-1"
     case USEast2 = "us-east-2"
