@@ -1,23 +1,21 @@
-import AWSCore
-
 public class LocationCredentialsProvider {
-    private var cognitoProvider: AWSCognitoCredentialsProvider?
-    private var apiProvider: AmazonLocationAPICredentialsProvider?
+    private var cognitoProvider: AmazonLocationCognitoCredentialsProvider?
+    private var apiProvider: AmazonLocationApiCredentialsProvider?
     private var region: String?
     
-    public init(regionType: AWSRegionType, identityPoolId: String){
-        self.cognitoProvider = AWSCognitoCredentialsProvider(regionType: regionType, identityPoolId: identityPoolId)
+    public init(regionType: AmazonLocationRegionType, identityPoolId: String){
+        self.cognitoProvider = AmazonLocationCognitoCredentialsProvider(identityPoolId: identityPoolId, region: region)
     }
     
     public init(region: String, apiKey: String){
-        self.apiProvider = AmazonLocationAPICredentialsProvider(apiKey: apiKey, region: region)
+        self.apiProvider = AmazonLocationApiCredentialsProvider(apiKey: apiKey, region: region)
     }
     
-    public func getCognitoProvider() -> AWSCognitoCredentialsProvider? {
+    public func getCognitoProvider() -> AmazonLocationCognitoCredentialsProvider? {
         return cognitoProvider
     }
     
-    public func getAPIProvider() -> AmazonLocationAPICredentialsProvider? {
+    public func getApiProvider() -> AmazonLocationApiCredentialsProvider? {
         return apiProvider
     }
     

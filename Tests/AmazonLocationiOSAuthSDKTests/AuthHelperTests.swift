@@ -1,7 +1,5 @@
 import XCTest
 @testable import AmazonLocationiOSAuthSDK
-import AWSCore
-import AWSMobileClientXCF
 
 final class AuthHelperTests: XCTestCase {
     
@@ -26,7 +24,7 @@ final class AuthHelperTests: XCTestCase {
         
         let identityPoolID = config["identityPoolID"]!
         let authHelper = AuthHelper()
-        let authProvider = authHelper.authenticateWithCognitoUserPool(identityPoolId: identityPoolID)
+        let authProvider = authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolID)
         XCTAssertEqual(authProvider.getIdentityPoolId(), identityPoolID)
     }
     
@@ -36,7 +34,7 @@ final class AuthHelperTests: XCTestCase {
         let identityPoolID = config["identityPoolID"]!
         let region = config["region"]!
         let authHelper = AuthHelper()
-        let authProvider = authHelper.authenticateWithCognitoUserPool(identityPoolId: identityPoolID, region: region)
+        let authProvider = authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolID, region: region)
         XCTAssertEqual(authProvider.getIdentityPoolId(), identityPoolID)
     }
     
@@ -47,8 +45,8 @@ final class AuthHelperTests: XCTestCase {
         let region = config["region"]!
 
         let authHelper = AuthHelper()
-        let authProvider = authHelper.authenticateWithAPIKey(apiKey: apiKey, region: region)
-        XCTAssertNotNil(authProvider.getAPIProvider())
+        let authProvider = authHelper.authenticateWithApiKey(apiKey: apiKey, region: region)
+        XCTAssertNotNil(authProvider.getApiProvider())
     }
     
     func testAWSEndpoint() {
@@ -56,32 +54,60 @@ final class AuthHelperTests: XCTestCase {
         
         let identityPoolID = config["identityPoolID"]!
         
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "us-east-1"), .USEast1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "us-east-2"), .USEast2)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "us-west-2"), .USWest2)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "us-west-1"), .USWest1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "eu-west-1"), .EUWest1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "eu-west-2"), .EUWest2)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "eu-west-3"), .EUWest3)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "eu-central-1"), .EUCentral1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "eu-north-1"), .EUNorth1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "ap-east-1"), .APEast1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "ap-southeast-1"), .APSoutheast1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString:  "ap-northeast-1"), .APNortheast1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "ap-northeast-2"), .APNortheast2)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "ap-southeast-2"), .APSoutheast2)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "ap-south-1"), .APSouth1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "sa-east-1"), .SAEast1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "cn-north-1"), .CNNorth1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "cn-northwest-1"), .CNNorthWest1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "ca-central-1"), .CACentral1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "us-gov-west-1"), .USGovWest1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "us-gov-east-1"), .USGovEast1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "me-south-1"), .MESouth1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "af-south-1"), .AFSouth1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "eu-south-1"), .EUSouth1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "us-east-1"), .USEast1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "us-east-2"), .USEast2)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "us-west-2"), .USWest2)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "us-west-1"), .USWest1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "eu-west-1"), .EUWest1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "eu-west-2"), .EUWest2)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "eu-west-3"), .EUWest3)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "eu-central-1"), .EUCentral1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "eu-north-1"), .EUNorth1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "ap-east-1"), .APEast1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "ap-southeast-1"), .APSoutheast1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString:  "ap-northeast-1"), .APNortheast1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "ap-northeast-2"), .APNortheast2)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "ap-southeast-2"), .APSoutheast2)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "ap-south-1"), .APSouth1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "sa-east-1"), .SAEast1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "cn-north-1"), .CNNorth1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "cn-northwest-1"), .CNNorthWest1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "ca-central-1"), .CACentral1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "us-gov-west-1"), .USGovWest1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "us-gov-east-1"), .USGovEast1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "me-south-1"), .MESouth1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "af-south-1"), .AFSouth1)
+        XCTAssertEqual(AmazonLocationEndpoint.regionTypeByString(regionString: "eu-south-1"), .EUSouth1)
         
-        XCTAssertEqual(AWSEndpoint.toRegionType(identityPoolId: identityPoolID), .USEast1)
-        XCTAssertEqual(AWSEndpoint.toRegionString(identityPoolId: identityPoolID), "us-east-1")
+        XCTAssertEqual(AmazonLocationEndpoint.toRegionType(identityPoolId: identityPoolID), .USEast1)
+        XCTAssertEqual(AmazonLocationEndpoint.toRegionString(identityPoolId: identityPoolID), "us-east-1")
+    }
+    
+    func testCognitoCredentialsProvider() {
+        let config = readTestConfig()
+        
+        let identityPoolId = config["identityPoolID"]!
+        let region = config["region"]!
+        
+        let expectation = self.expectation(description: "Wait for getCredentials response")
+                
+        CognitoCredentialsProvider.getAWSIdentityId(identityPoolId: identityPoolId, region: region) { (identityId) in
+            guard let identityId = identityId else {
+                XCTFail("Failed to get AWS identity ID")
+                expectation.fulfill()
+                return
+            }
+            
+            CognitoCredentialsProvider.getAWSCredentials(identityId: identityId, region: region) { (response) in
+                XCTAssertNotNil(response, "Response should not be nil")
+                expectation.fulfill()
+            }
+        }
+        
+        waitForExpectations(timeout: 10) { (error) in
+            if let error = error {
+                XCTFail("Timeout waiting for getCredentials: \(error)")
+            }
+        }
     }
 }
