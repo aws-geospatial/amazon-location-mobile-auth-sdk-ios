@@ -41,12 +41,13 @@ public class AuthHelper {
               let credentials = response["Credentials"] as? [String:Any],
               let accessKeyId = credentials["AccessKeyId"] as? String,
               let secretAccessKey = credentials["SecretKey"] as? String,
-              let sessionToken = credentials["SessionToken"] as? String
+              let sessionToken = credentials["SessionToken"] as? String,
+              let expirationInterval = credentials["Expiration"] as? NSNumber
         else {
             throw CognitoError.credentialsNotFound
         }
         
-        let expiryDate = Date() //credentials["Expiration"] as! String
+        let expiryDate = Date(timeIntervalSince1970: TimeInterval(truncating: expirationInterval))
         return CognitoCredentials(identityPoolId: identityPoolId, accessKeyId: accessKeyId, secretAccessKey: secretAccessKey, sessionToken: sessionToken, expiryDate: expiryDate)
     }
 
