@@ -2,15 +2,14 @@ import Foundation
 
 internal class CognitoCredentialsProvider {
     
-    static func getAWSIdentityId(identityPoolId: String, region: String, completion: @escaping (String?) -> Void) {
+    static func getAWSIdentityId(identityPoolId: String, region: String) async throws -> String? {
         let url = "https://cognito-identity.\(region).amazonaws.com/"
         let requestBody = "{\"IdentityPoolId\": \"\(identityPoolId)\"}"
         let mediaType = "application/x-amz-json-1.1"
         
         guard let requestUrl = URL(string: url) else {
             print("Error: Invalid URL")
-            completion(nil)
-            return
+            return nil
         }
         
         var request = URLRequest(url: requestUrl)
@@ -20,47 +19,28 @@ internal class CognitoCredentialsProvider {
         request.addValue("AWSCognitoIdentityService.GetId", forHTTPHeaderField: "X-Amz-Target")
         request.httpBody = requestBody.data(using: .utf8)
         
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            if let error = error {
-                print("Error: \(error.localizedDescription)")
-                completion(nil)
-                return
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            guard let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                  let identityId = jsonResponse["IdentityId"] as? String
+            else {
+                return nil
             }
-            
-            guard let data = data else {
-                print("Error: No data received")
-                completion(nil)
-                return
-            }
-            
-            do {
-                if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                    if let identityId = jsonResponse["IdentityId"] as? String {
-                        completion(identityId)
-                    } else {
-                        completion(nil)
-                    }
-                } else {
-                    completion(nil)
-                }
-            } catch {
-                print("Error parsing JSON: \(error.localizedDescription)")
-                completion(nil)
-            }
+            return identityId
+        } catch {
+            print("Error fetching AWS Identity ID: \(error)")
+            return nil
         }
-        
-        task.resume()
     }
     
-    static func getAWSCredentials(identityId: String, region: String, completion: @escaping ([String: Any]?) -> Void) {
+    static func getAWSCredentials(identityId: String, region: String) async throws -> [String: Any]? {
         let url = "https://cognito-identity.\(region).amazonaws.com/"
         let requestBody = "{\"IdentityId\": \"\(identityId)\"}"
         let mediaType = "application/x-amz-json-1.1"
         
         guard let requestUrl = URL(string: url) else {
             print("Error: Invalid URL")
-            completion(nil)
-            return
+            return nil
         }
         
         var request = URLRequest(url: requestUrl)
@@ -70,31 +50,12 @@ internal class CognitoCredentialsProvider {
         request.addValue("AWSCognitoIdentityService.GetCredentialsForIdentity", forHTTPHeaderField: "X-Amz-Target")
         request.httpBody = requestBody.data(using: .utf8)
         
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            if let error = error {
-                print("Error: \(error.localizedDescription)")
-                completion(nil)
-                return
-            }
-            
-            guard let data = data else {
-                print("Error: No data received")
-                completion(nil)
-                return
-            }
-            
-            do {
-                if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                    completion(jsonResponse)
-                } else {
-                    completion(nil)
-                }
-            } catch {
-                print("Error parsing JSON: \(error.localizedDescription)")
-                completion(nil)
-            }
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            return try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+        } catch {
+            print("Error fetching AWS Credentials: \(error)")
+            return nil
         }
-        
-        task.resume()
     }
 }

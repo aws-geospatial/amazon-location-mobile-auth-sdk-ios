@@ -19,23 +19,23 @@ final class AuthHelperTests: XCTestCase {
         return [:]
     }
     
-    func testAuthWithIdentityPoolID() throws {
+    func testAuthWithIdentityPoolID() async throws {
         let config = readTestConfig()
         
         let identityPoolID = config["identityPoolID"]!
         let authHelper = AuthHelper()
-        let authProvider = authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolID)
-        XCTAssertEqual(authProvider.getIdentityPoolId(), identityPoolID)
+        let authProvider = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolID)
+        XCTAssertEqual(authProvider!.getIdentityPoolId(), identityPoolID)
     }
     
-    func testAuthWithIdentityPoolIDAndRegion() throws {
+    func testAuthWithIdentityPoolIDAndRegion() async throws {
         let config = readTestConfig()
         
         let identityPoolID = config["identityPoolID"]!
         let region = config["region"]!
         let authHelper = AuthHelper()
-        let authProvider = authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolID, region: region)
-        XCTAssertEqual(authProvider.getIdentityPoolId(), identityPoolID)
+        let authProvider = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolID, region: region)
+        XCTAssertEqual(authProvider!.getIdentityPoolId(), identityPoolID)
     }
     
     func testAuthWithAPIKey() throws {
@@ -83,31 +83,69 @@ final class AuthHelperTests: XCTestCase {
         XCTAssertEqual(AmazonLocationEndpoint.toRegionString(identityPoolId: identityPoolID), "us-east-1")
     }
     
-    func testCognitoCredentialsProvider() {
+    func testCognitoCredentialsProviderSigner() async throws {
         let config = readTestConfig()
-        
         let identityPoolId = config["identityPoolID"]!
         let region = config["region"]!
-        
-        let expectation = self.expectation(description: "Wait for getCredentials response")
-                
-        CognitoCredentialsProvider.getAWSIdentityId(identityPoolId: identityPoolId, region: region) { (identityId) in
-            guard let identityId = identityId else {
-                XCTFail("Failed to get AWS identity ID")
-                expectation.fulfill()
-                return
-            }
-            
-            CognitoCredentialsProvider.getAWSCredentials(identityId: identityId, region: region) { (response) in
-                XCTAssertNotNil(response, "Response should not be nil")
-                expectation.fulfill()
-            }
+        let placeIndex = config["placeIndex"]!
+        let authHelper = AuthHelper()
+        let authProvider = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolId, region: region)
+        let cognitoCredentials = authProvider?.getCognitoProvider()?.getCognitoCredentials()
+        let address = try? await searchPositionAPI(region: region, indexName: placeIndex, position: [40.758023, -73.985564], cognitoCrdentials: cognitoCredentials!)
+        XCTAssertNotNil(address, "Address found")
+    }
+    
+    func searchPositionAPI(region: String, indexName: String, position: [NSNumber], cognitoCrdentials: CognitoCredentials) async throws -> String? {
+        let url = URL(string: "https://places.geo.\(region).amazonaws.com/places/v0/indexes/\(indexName)/search/position")!
+
+        let requestBody: [String: Any] = [
+            "Language": "en",
+            "MaxResults": 10,
+            "Position": position
+        ]
+
+        let requestData: Data
+        do {
+            requestData = try JSONSerialization.data(withJSONObject: requestBody, options: [])
+        } catch {
+            print("Error: Unable to encode request body as JSON")
+            return nil
         }
         
-        waitForExpectations(timeout: 10) { (error) in
-            if let error = error {
-                XCTFail("Timeout waiting for getCredentials: \(error)")
+        var headers = HTTPHeaders()
+        headers.add(name: "Content-Type", value: "application/json")
+        
+        let signer = AWSSigner(credentials: cognitoCrdentials, name: "geo", region: region)
+        let signedHeaders = signer.signHeaders(url: url, method: .POST, headers: headers, body: .data(requestData))
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = HTTPMethod.POST.rawValue
+        request.httpBody = requestData
+        
+        for (name, value) in signedHeaders.allHeaders() {
+            request.addValue(value, forHTTPHeaderField: name)
+        }
+        
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode) else {
+                return nil
             }
+            
+            guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                  let results = json["Results"] as? [[String: Any]],
+                  let result = results.first,
+                  let properties = result["Place"] as? [String: Any],
+                  let address = properties["Label"] as? String else {
+                return nil
+            }
+            
+            return address
+        } catch {
+            print("Error: \(error.localizedDescription)")
+            throw error
         }
     }
 }
