@@ -17,19 +17,11 @@ public class AuthHelper {
     
     private func authenticateWithCognitoIdentityPool(identityPoolId: String, regionType: AmazonLocationRegionType) async throws -> LocationCredentialsProvider? {
         let credentialProvider : LocationCredentialsProvider = LocationCredentialsProvider(regionType: regionType, identityPoolId: identityPoolId)
-        do {
-            //if let cognitoCredentialString = KeyChainHelper.get(key: .CognitoCrdentials), let savedCognitoCrdentials = CognitoCredentials.decodeCognitoCredentials(jsonString: cognitoCredentialString), savedCognitoCrdentials.expiryDate! < Date() {
-                guard let cognitoCredentials = try? await generateCognitoCredentials(identityPoolId: identityPoolId, region: regionType.rawValue) else {
-                    throw CognitoError.credentialsNotFound
-                }
-                credentialProvider.getCognitoProvider()?.setCognitoCredentials(cognitoCredentials: cognitoCredentials)
-            //}
-            
-            return credentialProvider
+        guard let cognitoCredentials = try? await generateCognitoCredentials(identityPoolId: identityPoolId, region: regionType.rawValue) else {
+            throw CognitoError.credentialsNotFound
         }
-        catch {
-            throw error
-        }
+        credentialProvider.getCognitoProvider()?.setCognitoCredentials(cognitoCredentials: cognitoCredentials)
+        return credentialProvider
     }
 
     private func generateCognitoCredentials(identityPoolId: String, region: String) async throws -> CognitoCredentials {

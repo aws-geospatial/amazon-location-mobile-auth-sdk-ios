@@ -28,8 +28,7 @@ internal class CognitoCredentialsProvider {
             }
             return identityId
         } catch {
-            print("Error fetching AWS Identity ID: \(error)")
-            return nil
+            throw error
         }
     }
     
@@ -54,8 +53,7 @@ internal class CognitoCredentialsProvider {
             let (data, _) = try await URLSession.shared.data(for: request)
             return try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
         } catch {
-            print("Error fetching AWS Credentials: \(error)")
-            return nil
+            throw error
         }
     }
 }

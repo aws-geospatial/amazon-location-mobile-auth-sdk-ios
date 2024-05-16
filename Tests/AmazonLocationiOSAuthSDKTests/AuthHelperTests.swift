@@ -109,7 +109,7 @@ final class AuthHelperTests: XCTestCase {
             requestData = try JSONSerialization.data(withJSONObject: requestBody, options: [])
         } catch {
             print("Error: Unable to encode request body as JSON")
-            return nil
+            throw error
         }
         
         var headers = HTTPHeaders()
