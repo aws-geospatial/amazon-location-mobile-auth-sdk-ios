@@ -17,30 +17,8 @@ public class AuthHelper {
     
     private func authenticateWithCognitoIdentityPool(identityPoolId: String, regionType: AmazonLocationRegionType) async throws -> LocationCredentialsProvider? {
         let credentialProvider : LocationCredentialsProvider = LocationCredentialsProvider(regionType: regionType, identityPoolId: identityPoolId)
-        guard let cognitoCredentials = try? await generateCognitoCredentials(identityPoolId: identityPoolId, region: regionType.rawValue) else {
-            throw CognitoError.credentialsNotFound
-        }
-        credentialProvider.getCognitoProvider()?.setCognitoCredentials(cognitoCredentials: cognitoCredentials)
+        try await credentialProvider.getCognitoProvider()?.refreshCognitoCredentialsIfExpired()
         return credentialProvider
-    }
-
-    private func generateCognitoCredentials(identityPoolId: String, region: String) async throws -> CognitoCredentials {
-        guard let identityId = try await CognitoCredentialsProvider.getAWSIdentityId(identityPoolId: identityPoolId, region: region) else {
-            throw CognitoError.identityIdNotFound
-        }
-        
-        guard let response = try await CognitoCredentialsProvider.getAWSCredentials(identityId: identityId, region: region),
-              let credentials = response["Credentials"] as? [String:Any],
-              let accessKeyId = credentials["AccessKeyId"] as? String,
-              let secretAccessKey = credentials["SecretKey"] as? String,
-              let sessionToken = credentials["SessionToken"] as? String,
-              let expirationInterval = credentials["Expiration"] as? NSNumber
-        else {
-            throw CognitoError.credentialsNotFound
-        }
-        
-        let expiryDate = Date(timeIntervalSince1970: TimeInterval(truncating: expirationInterval))
-        return CognitoCredentials(identityPoolId: identityPoolId, accessKeyId: accessKeyId, secretAccessKey: secretAccessKey, sessionToken: sessionToken, expiryDate: expiryDate)
     }
 
     public func authenticateWithApiKey(apiKey: String, region: String) -> LocationCredentialsProvider {
@@ -54,9 +32,4 @@ public class AuthHelper {
     {
        return AmazonClient()
     }
-}
-
-enum CognitoError: Error {
-    case identityIdNotFound
-    case credentialsNotFound
 }

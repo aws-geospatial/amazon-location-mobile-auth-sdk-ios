@@ -91,7 +91,7 @@ final class AuthHelperTests: XCTestCase {
         let authHelper = AuthHelper()
         let authProvider = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolId, region: region)
         let cognitoCredentials = authProvider?.getCognitoProvider()?.getCognitoCredentials()
-        let address = try? await searchPositionAPI(region: region, indexName: placeIndex, position: [40.758023, -73.985564], cognitoCrdentials: cognitoCredentials!)
+        let address = try? await searchPositionAPI(region: region, indexName: placeIndex, position: [-73.985564, 40.758023], cognitoCrdentials: cognitoCredentials!)
         XCTAssertNotNil(address, "Address found")
     }
     

@@ -3,7 +3,7 @@ import KeychainSwift
 enum KeyChainType: String {
     case AmazonLocationAPIKey
     case AWSRegion
-    case CognitoCrdentials
+    case CognitoCredentials
 }
 
 final class KeyChainHelper {

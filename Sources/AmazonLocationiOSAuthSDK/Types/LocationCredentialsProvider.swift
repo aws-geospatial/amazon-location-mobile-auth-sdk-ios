@@ -4,6 +4,7 @@ public class LocationCredentialsProvider {
     private var region: String?
     
     public init(regionType: AmazonLocationRegionType, identityPoolId: String){
+        region = regionType.rawValue
         self.cognitoProvider = AmazonLocationCognitoCredentialsProvider(identityPoolId: identityPoolId, region: region)
     }
     
