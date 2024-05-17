@@ -115,7 +115,7 @@ final class AuthHelperTests: XCTestCase {
         var headers = HTTPHeaders()
         headers.add(name: "Content-Type", value: "application/json")
         
-        let signer = AWSSigner(credentials: cognitoCrdentials, name: "geo", region: region)
+        let signer = AWSSigner(credentials: cognitoCrdentials, serviceName: "geo", region: region)
         let signedHeaders = signer.signHeaders(url: url, method: .POST, headers: headers, body: .data(requestData))
         
         var request = URLRequest(url: url)

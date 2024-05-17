@@ -143,7 +143,7 @@ public struct AWSSigner {
     /// Security credentials for accessing AWS services
     public let credentials: CognitoCredentials
     /// Service signing name. In general this is the same as the service name
-    public let name: String
+    public let serviceName: String
     /// AWS region you are working in
     public let region: String
 
@@ -152,10 +152,16 @@ public struct AWSSigner {
     private static let timeStampDateFormatter: DateFormatter = createTimeStampDateFormatter()
 
     /// Initialise the Signer class with AWS credentials
-    public init(credentials: CognitoCredentials, name: String, region: String) {
+    public init(credentials: CognitoCredentials, serviceName: String, region: String) {
         self.credentials = credentials
-        self.name = name
+        self.serviceName = serviceName
         self.region = region
+    }
+    
+    public init(amazonLocationCognitoCredentialsProvider: AmazonLocationCognitoCredentialsProvider, serviceName: String) {
+        self.credentials = amazonLocationCognitoCredentialsProvider.getCognitoCredentials()!
+        self.serviceName = serviceName
+        self.region = amazonLocationCognitoCredentialsProvider.region!
     }
 
     /// Enum for holding request payload
@@ -189,7 +195,7 @@ public struct AWSSigner {
             .joined(separator: "&")
         urlComponents.percentEncodedQuery = urlQueryString
         // S3 requires "+" encoded in the URL
-        if self.name == "s3" {
+        if self.serviceName == "s3" {
             urlComponents.percentEncodedPath = urlComponents.path.s3PathEncode()
         }
         return urlComponents.url
@@ -227,7 +233,7 @@ public struct AWSSigner {
 
         // construct authorization string
         let authorization = "AWS4-HMAC-SHA256 " +
-            "Credential=\(credentials.accessKeyId)/\(signingData.date)/\(self.region)/\(self.name)/aws4_request," +
+            "Credential=\(credentials.accessKeyId)/\(signingData.date)/\(self.region)/\(self.serviceName)/aws4_request," +
             "SignedHeaders=\(signingData.signedHeaders)," +
             "Signature=\(self.signature(signingData: signingData))"
 
@@ -270,7 +276,7 @@ public struct AWSSigner {
             query += "&"
         }
         query += "X-Amz-Algorithm=AWS4-HMAC-SHA256"
-        query += "&X-Amz-Credential=\(self.credentials.accessKeyId)/\(signingData.date)/\(self.region)/\(self.name)/aws4_request"
+        query += "&X-Amz-Credential=\(self.credentials.accessKeyId)/\(signingData.date)/\(self.region)/\(self.serviceName)/aws4_request"
         query += "&X-Amz-Date=\(signingData.datetime)"
         query += "&X-Amz-Expires=\(expires.nanoseconds / 1_000_000_000)"
         query += "&X-Amz-SignedHeaders=\(signingData.signedHeaders)"
@@ -337,7 +343,7 @@ public struct AWSSigner {
 
         // construct authorization string
         let authorization = "AWS4-HMAC-SHA256 " +
-            "Credential=\(credentials.accessKeyId)/\(signingData.date)/\(self.region)/\(self.name)/aws4_request," +
+            "Credential=\(credentials.accessKeyId)/\(signingData.date)/\(self.region)/\(self.serviceName)/aws4_request," +
             "SignedHeaders=\(signingData.signedHeaders)," +
             "Signature=\(signature)"
 
@@ -378,7 +384,7 @@ public struct AWSSigner {
 
             if let hash = bodyHash {
                 self.hashedPayload = hash
-            } else if signer.name == "s3" {
+            } else if signer.serviceName == "s3" {
                 self.hashedPayload = "UNSIGNED-PAYLOAD"
             } else {
                 self.hashedPayload = AWSSigner.hashedPayload(body)
@@ -423,7 +429,7 @@ public struct AWSSigner {
     func stringToSign(signingData: SigningData) -> String {
         let stringToSign = "AWS4-HMAC-SHA256\n" +
             "\(signingData.datetime)\n" +
-            "\(signingData.date)/\(self.region)/\(self.name)/aws4_request\n" +
+            "\(signingData.date)/\(self.region)/\(self.serviceName)/aws4_request\n" +
             SHA256.hash(data: [UInt8](self.canonicalRequest(signingData: signingData).utf8)).hexDigest()
         return stringToSign
     }
@@ -437,7 +443,7 @@ public struct AWSSigner {
             .joined(separator: "\n")
         let canonicalPath: String
         let urlComps = URLComponents(url: signingData.unsignedURL, resolvingAgainstBaseURL: false)!
-        if self.name == "s3" {
+        if self.serviceName == "s3" {
             canonicalPath = urlComps.path.uriEncodeWithSlash()
         } else {
             // non S3 paths need to be encoded twice
@@ -456,7 +462,7 @@ public struct AWSSigner {
     func signingKey(date: String) -> SymmetricKey {
         let kDate = HMAC<SHA256>.authenticationCode(for: [UInt8](date.utf8), using: SymmetricKey(data: Array("AWS4\(self.credentials.secretAccessKey)".utf8)))
         let kRegion = HMAC<SHA256>.authenticationCode(for: [UInt8](self.region.utf8), using: SymmetricKey(data: kDate))
-        let kService = HMAC<SHA256>.authenticationCode(for: [UInt8](self.name.utf8), using: SymmetricKey(data: kRegion))
+        let kService = HMAC<SHA256>.authenticationCode(for: [UInt8](self.serviceName.utf8), using: SymmetricKey(data: kRegion))
         let kSigning = HMAC<SHA256>.authenticationCode(for: [UInt8]("aws4_request".utf8), using: SymmetricKey(data: kService))
         return SymmetricKey(data: kSigning)
     }
@@ -466,7 +472,7 @@ public struct AWSSigner {
         let date = String(datetime.prefix(8))
         let stringToSign = "AWS4-HMAC-SHA256-PAYLOAD\n" +
             "\(datetime)\n" +
-            "\(date)/\(region)/\(name)/aws4_request\n" +
+            "\(date)/\(region)/\(serviceName)/aws4_request\n" +
             "\(previousSignature)\n" +
             "\(Self.hashedEmptyBody)\n" +
             Self.hashedPayload(body)
