@@ -27,11 +27,11 @@ public enum AmazonLocationRegionType: String {
 
 public class AmazonLocationEndpoint {
 
-    static func regionTypeByString(regionString: String) -> AmazonLocationRegionType? {
+    public static func regionTypeByString(regionString: String) -> AmazonLocationRegionType? {
         return AmazonLocationRegionType(rawValue: regionString)
     }
     
-    static func toRegionType(identityPoolId: String) -> AmazonLocationRegionType? {
+    public static func toRegionType(identityPoolId: String) -> AmazonLocationRegionType? {
         var region: AmazonLocationRegionType?
     
         if let stringRegion = identityPoolId.components(separatedBy: ":").first {
@@ -45,7 +45,7 @@ public class AmazonLocationEndpoint {
         return region
     }
     
-    static func toRegionString(identityPoolId: String) -> String {
+    public static func toRegionString(identityPoolId: String) -> String {
         return identityPoolId.components(separatedBy: ":").first ?? identityPoolId
     }
 }
