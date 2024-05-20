@@ -1,9 +1,9 @@
-import Foundation
 import KeychainSwift
 
 enum KeyChainType: String {
     case AmazonLocationAPIKey
     case AWSRegion
+    case CognitoCredentials
 }
 
 final class KeyChainHelper {
