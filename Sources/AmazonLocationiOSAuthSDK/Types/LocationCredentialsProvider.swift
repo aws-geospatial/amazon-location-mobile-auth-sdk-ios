@@ -4,11 +4,12 @@ public class LocationCredentialsProvider {
     private var region: String?
     
     public init(regionType: AmazonLocationRegionType, identityPoolId: String){
-        region = regionType.rawValue
+        self.region = regionType.rawValue
         self.cognitoProvider = AmazonLocationCognitoCredentialsProvider(identityPoolId: identityPoolId, region: region)
     }
     
     public init(region: String, apiKey: String){
+        self.region = region
         self.apiProvider = AmazonLocationApiCredentialsProvider(apiKey: apiKey, region: region)
     }
     
@@ -30,8 +31,6 @@ public class LocationCredentialsProvider {
     }
     
     public func getRegion() -> String? {
-        let region = KeyChainHelper.get(key: .AWSRegion)
-        self.apiProvider?.region = region
         return region
     }
     
@@ -42,6 +41,7 @@ public class LocationCredentialsProvider {
     
     internal func setRegion(region: String) {
         self.apiProvider?.region = region
+        self.cognitoProvider?.region = region
         self.region = region
         KeyChainHelper.save(value: region, key: .AWSRegion)
     }
