@@ -1,13 +1,13 @@
 import Foundation
 
 public class AmazonLocationClient {
-    internal let locationProvider: LocationCredentialsProvider
+    public let locationProvider: LocationCredentialsProvider
     
     public init(locationCredentialsProvider: LocationCredentialsProvider) {
         self.locationProvider = locationCredentialsProvider
     }
     
-    internal func sendRequest<T: Decodable, E: AmazonErrorResponse>(
+    public func sendRequest<T: Decodable, E: AmazonErrorResponse>(
         serviceName: AmazonService,
         endpoint: AmazonLocationEndpoint,
         httpMethod: HTTPMethod,
