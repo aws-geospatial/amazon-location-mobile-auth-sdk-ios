@@ -88,10 +88,13 @@ final class AuthHelperTests: XCTestCase {
         let identityPoolId = config["identityPoolID"]!
         let region = config["region"]!
         let placeIndex = config["placeIndex"]!
+        
         let authHelper = AuthHelper()
         _ = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolId, region: region)
+        
         let amazonClient = authHelper.getLocationClient()
-        let searchRequest = SearchByPositionRequest(position: [-71.985564, 41.758023], language: "en", maxResults: 10)
+        let searchRequest = SearchByPositionRequest(language: "en" , maxResults: 10, position: [-71.985564, 41.758023])
+        
         let searchResponse = try? await amazonClient!.searchPosition(indexName: placeIndex, request: searchRequest)
         XCTAssertNotNil(searchResponse!.Results.first!.Place.Label, "Address found")
     }

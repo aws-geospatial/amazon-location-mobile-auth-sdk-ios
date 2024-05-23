@@ -1,13 +1,18 @@
 import Foundation
 
-public struct SearchByPositionRequest {
-    public let position: [NSNumber]
+public struct SearchByPositionRequest: Codable, EncodableRequest {
     public let language: String
     public let maxResults: Int
+    public let position: [Double]
+    
+    enum CodingKeys: String, CodingKey {
+        case language = "Language"
+        case maxResults = "MaxResults"
+        case position = "Position"
+    }
 
-    public init(position: [NSNumber], language: String = "en", maxResults: Int = 10) {
-        self.position = position
-        self.language = language
-        self.maxResults = maxResults
+    public func toData() throws -> Data {
+        let encoder = JSONEncoder()
+        return try encoder.encode(self)
     }
 }

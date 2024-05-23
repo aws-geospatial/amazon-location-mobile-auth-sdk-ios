@@ -7,15 +7,16 @@ public class AmazonLocationClient {
         self.locationProvider = locationCredentialsProvider
     }
     
-    private func sendRequest(serviceName: AmazonService, endpoint: AmazonLocationEndpoint, httpMethod: HTTPMethod, requestBody: [String: Any]?) async throws -> Data? {
+    private func sendRequest(serviceName: AmazonService, endpoint: AmazonLocationEndpoint, httpMethod: HTTPMethod, requestBody: EncodableRequest?) async throws -> Data? {
         let url = URL(string: endpoint.url())!
         
         var request = URLRequest(url: url)
         request.httpMethod = httpMethod.rawValue
         var requestData: Data? = nil
-        if requestBody != nil {
+        
+        if let requestBody = requestBody {
             do {
-                requestData = try JSONSerialization.data(withJSONObject: requestBody!, options: [])
+                requestData = try requestBody.toData()
                 request.httpBody = requestData
             } catch {
                 print("Error: Unable to encode request body as JSON")
@@ -28,7 +29,7 @@ public class AmazonLocationClient {
         
         let cognitoCredentials = locationProvider.getCognitoProvider()?.getCognitoCredentials()
         let signer = AWSSigner(credentials: cognitoCredentials!, serviceName: serviceName.rawValue, region: locationProvider.getRegion()!)
-        let signedHeaders = signer.signHeaders(url: url, method: httpMethod, headers: headers, body: requestData != nil ? .data(requestData!):  nil)
+        let signedHeaders = signer.signHeaders(url: url, method: httpMethod, headers: headers, body: requestData != nil ? .data(requestData!) : nil)
         
         for (name, value) in signedHeaders.allHeaders() {
             request.addValue(value, forHTTPHeaderField: name)
@@ -47,14 +48,11 @@ public class AmazonLocationClient {
             throw error
         }
     }
+
     
     public func searchPosition(indexName: String, request: SearchByPositionRequest) async throws -> SearchByPositionResponse? {
-        let requestBody: [String: Any] = [
-            "Language": request.language,
-            "MaxResults": 10,
-            "Position": request.position
-        ]
-        let responseData = try await sendRequest(serviceName: .Location, endpoint: .locationSearch(region: locationProvider.getRegion()!, indexName: indexName), httpMethod: .POST, requestBody: requestBody)
+        
+        let responseData = try await sendRequest(serviceName: .Location, endpoint: .locationSearch(region: locationProvider.getRegion()!, indexName: indexName), httpMethod: .POST, requestBody: request)
 
         if responseData != nil {
             do {
