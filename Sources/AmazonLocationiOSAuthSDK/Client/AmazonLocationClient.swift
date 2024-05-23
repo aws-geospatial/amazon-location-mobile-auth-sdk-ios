@@ -7,7 +7,7 @@ public class AmazonLocationClient {
         self.locationProvider = locationCredentialsProvider
     }
     
-    private func sendRequest(serviceName: AmazonService, endpoint: AmazonLocationEndpoint, httpMethod: HTTPMethod, requestBody: EncodableRequest?) async throws -> Data? {
+    internal func sendRequest(serviceName: AmazonService, endpoint: AmazonLocationEndpoint, httpMethod: HTTPMethod, requestBody: EncodableRequest?) async throws -> Data? {
         let url = URL(string: endpoint.url())!
         
         var request = URLRequest(url: url)
