@@ -52,7 +52,7 @@ public class AmazonLocationClient {
     
     public func searchPosition(indexName: String, request: SearchByPositionRequest) async throws -> SearchByPositionResponse? {
         
-        let responseData = try await sendRequest(serviceName: .Location, endpoint: .locationSearch(region: locationProvider.getRegion()!, indexName: indexName), httpMethod: .POST, requestBody: request)
+        let responseData = try await sendRequest(serviceName: .Location, endpoint: SearchByPositionEndpoint(region: locationProvider.getRegion()!, indexName: indexName), httpMethod: .POST, requestBody: request)
 
         if responseData != nil {
             do {
