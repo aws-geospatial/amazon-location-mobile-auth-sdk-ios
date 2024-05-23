@@ -7,7 +7,14 @@ public class AmazonLocationClient {
         self.locationProvider = locationCredentialsProvider
     }
     
-    internal func sendRequest(serviceName: AmazonService, endpoint: AmazonLocationEndpoint, httpMethod: HTTPMethod, requestBody: EncodableRequest?) async throws -> Data? {
+    internal func sendRequest<T: Decodable, E: AmazonErrorResponse>(
+        serviceName: AmazonService,
+        endpoint: AmazonLocationEndpoint,
+        httpMethod: HTTPMethod,
+        requestBody: EncodableRequest?,
+        successType: T.Type,
+        errorType: E.Type
+    ) async throws -> Result<T, E> {
         let url = URL(string: endpoint.url())!
         
         var request = URLRequest(url: url)
@@ -19,7 +26,6 @@ public class AmazonLocationClient {
                 requestData = try requestBody.toData()
                 request.httpBody = requestData
             } catch {
-                print("Error: Unable to encode request body as JSON")
                 throw error
             }
         }
@@ -38,33 +44,40 @@ public class AmazonLocationClient {
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             
-            guard let httpResponse = response as? HTTPURLResponse,
-                  (200...299).contains(httpResponse.statusCode) else {
-                return nil
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw URLError(.badServerResponse)
             }
-            return data
+            
+            if (200...299).contains(httpResponse.statusCode) {
+                let decoder = JSONDecoder()
+                let successResponse = try decoder.decode(successType, from: data)
+                return .success(successResponse)
+            } else {
+                let decoder = JSONDecoder()
+                let errorResponse = try decoder.decode(errorType, from: data)
+                return .failure(errorResponse)
+            }
         } catch {
-            print("Error: \(error.localizedDescription)")
             throw error
         }
     }
 
-    
     public func searchPosition(indexName: String, request: SearchByPositionRequest) async throws -> SearchByPositionResponse? {
         
-        let responseData = try await sendRequest(serviceName: .Location, endpoint: SearchByPositionEndpoint(region: locationProvider.getRegion()!, indexName: indexName), httpMethod: .POST, requestBody: request)
-
-        if responseData != nil {
-            do {
-                let response = try SearchByPositionResponse.from(data: responseData!)
-                return response
-            }
-            catch {
-                print(error)
-                return nil
-            }
-        }
+        let result: Result<SearchByPositionResponse, SearchByPositionErrorsResponse> = try await sendRequest(
+            serviceName: .Location,
+            endpoint: SearchByPositionEndpoint(region: locationProvider.getRegion()!, indexName: indexName),
+            httpMethod: .POST,
+            requestBody: request,
+            successType: SearchByPositionResponse.self,
+            errorType: SearchByPositionErrorsResponse.self
+        )
         
-        return nil
+        switch result {
+        case .success(let response):
+            return response
+        case .failure(let errorResponse):
+            throw errorResponse
+        }
     }
 }
