@@ -1,7 +1,7 @@
 import Foundation
 
 public class AmazonLocationClient {
-    private let locationProvider: LocationCredentialsProvider
+    internal let locationProvider: LocationCredentialsProvider
     
     public init(locationCredentialsProvider: LocationCredentialsProvider) {
         self.locationProvider = locationCredentialsProvider
