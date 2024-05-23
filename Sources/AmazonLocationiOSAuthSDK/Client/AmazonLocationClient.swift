@@ -50,9 +50,14 @@ public class AmazonLocationClient {
             }
 
             if (200...299).contains(httpResponse.statusCode) {
-                let decoder = JSONDecoder()
-                let successResponse = try decoder.decode(successType, from: data)
-                return .success(successResponse)
+                if T.self == EmptyResponse.self {
+                    return .success(EmptyResponse(statusCode: httpResponse.statusCode, description: httpResponse.description) as! T)
+                    }
+                    else {
+                        let decoder = JSONDecoder()
+                        let successResponse = try decoder.decode(successType, from: data)
+                        return .success(successResponse)
+                    }
             } else {
                 let decoder = JSONDecoder()
                 let errorResponse = try decoder.decode(errorType, from: data)
