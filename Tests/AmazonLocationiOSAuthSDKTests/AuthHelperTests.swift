@@ -83,7 +83,7 @@ final class AuthHelperTests: XCTestCase {
         XCTAssertEqual(AmazonLocationRegion.toRegionString(identityPoolId: identityPoolID), "us-east-1")
     }
     
-    func testCognitoCredentialsProviderSigner() async throws {
+    func testSearchByPosition() async throws {
         let config = readTestConfig()
         let identityPoolId = config["identityPoolID"]!
         let region = config["region"]!
