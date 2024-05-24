@@ -7,7 +7,7 @@ public class AmazonLocationClient {
         self.locationProvider = locationCredentialsProvider
     }
     
-    public func sendRequest<T: Decodable, E: AmazonErrorResponse & Error>(
+    public func sendRequest<T: Decodable, E: AmazonBaseErrorResponse & Error>(
         serviceName: AmazonService,
         endpoint: AmazonLocationEndpoint,
         httpMethod: HTTPMethod,
@@ -72,13 +72,13 @@ public class AmazonLocationClient {
 
     public func searchPosition(indexName: String, request: SearchByPositionRequest) async throws -> SearchByPositionResponse? {
         
-        let result: Result<SearchByPositionResponse, SearchByPositionErrorsResponse> = try await sendRequest(
+        let result: Result<SearchByPositionResponse, AmazonErrorResponse> = try await sendRequest(
             serviceName: .Location,
             endpoint: SearchByPositionEndpoint(region: locationProvider.getRegion()!, indexName: indexName),
             httpMethod: .POST,
             requestBody: request,
             successType: SearchByPositionResponse.self,
-            errorType: SearchByPositionErrorsResponse.self
+            errorType: AmazonErrorResponse.self
         )
         
         switch result {
