@@ -58,6 +58,8 @@ public class AmazonLocationClient {
                     return .success(EmptyResponse(statusCode: httpResponse.statusCode, description: httpResponse.description) as! T)
                     }
                     else {
+                        let jsonString = String(data: data, encoding: .utf8)
+                        print(jsonString as Any)
                         let decoder = JSONDecoder()
                         let successResponse = try decoder.decode(successType, from: data)
                         return .success(successResponse)
