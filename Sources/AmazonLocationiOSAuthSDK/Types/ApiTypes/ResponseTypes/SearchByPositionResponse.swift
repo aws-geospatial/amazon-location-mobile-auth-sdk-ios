@@ -51,7 +51,6 @@ extension SearchByPositionResponse {
     public static func from(data: Data) throws -> SearchByPositionResponse? {
         do {
             let decoder = JSONDecoder()
-            decoder.keyDecodingStrategy = .convertFromSnakeCase
             let response = try decoder.decode(SearchByPositionResponse.self, from: data)
             return response
         }
