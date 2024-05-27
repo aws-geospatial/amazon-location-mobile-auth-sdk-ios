@@ -24,6 +24,10 @@ public class AmazonLocationClient {
         if let requestBody = requestBody {
             do {
                 requestData = try requestBody.toData()
+                if requestData != nil {
+                    let jsonString = String(data: requestData!, encoding: .utf8)
+                    print(jsonString as Any)
+                }
                 request.httpBody = requestData
             } catch {
                 print("Error: Unable to encode request body as JSON")
