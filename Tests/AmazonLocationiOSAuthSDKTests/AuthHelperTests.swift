@@ -96,6 +96,8 @@ final class AuthHelperTests: XCTestCase {
         let searchRequest = SearchByPositionRequest(language: "en" , maxResults: 10, position: [-71.985564, 41.758023])
         
         let searchResponse = try? await amazonClient!.searchPosition(indexName: placeIndex, request: searchRequest)
-        XCTAssertNotNil(searchResponse!.Results.first!.Place.Label, "Address found")
+    
+        XCTAssertEqual(searchResponse!.status.statusCode, 200)
+        XCTAssertNotNil(searchResponse!.data!.Results.first!.Place.Label, "Address found")
     }
 }

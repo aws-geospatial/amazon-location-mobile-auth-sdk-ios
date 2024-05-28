@@ -14,7 +14,7 @@ public class AmazonLocationClient {
         requestBody: EncodableRequest?,
         successType: T.Type,
         errorType: E.Type
-    ) async throws -> Result<T, E> {
+    ) async throws -> AmazonLocationResponse<T, E> {
         let url = URL(string: endpoint.url())!
 
         var request = URLRequest(url: url)
@@ -49,20 +49,17 @@ public class AmazonLocationClient {
                 throw URLError(.badServerResponse)
             }
 
-            if (200...299).contains(httpResponse.statusCode) {
-                if T.self == EmptyResponse.self {
-                    return .success(EmptyResponse(statusCode: httpResponse.statusCode, description: httpResponse.description) as! T)
-                    }
-                    else {
-                        let decoder = JSONDecoder()
-                        let successResponse = try decoder.decode(successType, from: data)
-                        return .success(successResponse)
-                    }
-            } else {
-                let decoder = JSONDecoder()
-                let errorResponse = try decoder.decode(errorType, from: data)
-                return .failure(errorResponse)
-            }
+            let status = ResponseStatus(statusCode: httpResponse.statusCode, description: HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))
+
+                if (200...299).contains(httpResponse.statusCode) {
+                    let decoder = JSONDecoder()
+                    let successResponse = try decoder.decode(successType, from: data)
+                    return AmazonLocationResponse(status: status, data: successResponse, error: nil)
+                } else {
+                    let decoder = JSONDecoder()
+                    let errorResponse = try decoder.decode(errorType, from: data)
+                    return AmazonLocationResponse(status: status, data: nil, error: errorResponse)
+                }
         } catch {
             print("Error: \(error.localizedDescription)")
             throw error
@@ -70,9 +67,9 @@ public class AmazonLocationClient {
     }
 
 
-    public func searchPosition(indexName: String, request: SearchByPositionRequest) async throws -> SearchByPositionResponse? {
+    public func searchPosition(indexName: String, request: SearchByPositionRequest) async throws -> AmazonLocationResponse<SearchByPositionResponse, AmazonErrorResponse> {
         
-        let result: Result<SearchByPositionResponse, AmazonErrorResponse> = try await sendRequest(
+        let result: AmazonLocationResponse<SearchByPositionResponse, AmazonErrorResponse> = try await sendRequest(
             serviceName: .Location,
             endpoint: SearchByPositionEndpoint(region: locationProvider.getRegion()!, indexName: indexName),
             httpMethod: .POST,
@@ -81,11 +78,6 @@ public class AmazonLocationClient {
             errorType: AmazonErrorResponse.self
         )
         
-        switch result {
-        case .success(let response):
-            return response
-        case .failure(let errorResponse):
-            throw errorResponse
-        }
+        return result
     }
 }
