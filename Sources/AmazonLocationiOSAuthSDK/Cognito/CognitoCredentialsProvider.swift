@@ -1,6 +1,6 @@
 import Foundation
 
-internal class CognitoCredentialsProvider {
+public class CognitoCredentialsProvider {
     
     static func getAWSIdentityId(identityPoolId: String, region: String) async throws -> String? {
         let url = "https://cognito-identity.\(region).amazonaws.com/"

@@ -56,8 +56,3 @@ public class AmazonLocationCognitoCredentialsProvider {
         return CognitoCredentials(identityPoolId: identityPoolId, accessKeyId: accessKeyId, secretAccessKey: secretAccessKey, sessionToken: sessionToken, expiryDate: expiryDate)
     }
 }
-
-enum CognitoError: Error {
-    case identityIdNotFound
-    case credentialsNotFound
-}

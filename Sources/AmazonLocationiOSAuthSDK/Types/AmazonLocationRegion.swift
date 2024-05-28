@@ -25,7 +25,7 @@ public enum AmazonLocationRegionType: String {
     case EUSouth1 = "eu-south-1"
 }
 
-public class AmazonLocationEndpoint {
+public class AmazonLocationRegion {
 
     public static func regionTypeByString(regionString: String) -> AmazonLocationRegionType? {
         return AmazonLocationRegionType(rawValue: regionString)
@@ -36,7 +36,7 @@ public class AmazonLocationEndpoint {
     
         if let stringRegion = identityPoolId.components(separatedBy: ":").first {
             
-            if let extractedRegion = AmazonLocationEndpoint.regionTypeByString(regionString: stringRegion) {
+            if let extractedRegion = AmazonLocationRegion.regionTypeByString(regionString: stringRegion) {
                 region = extractedRegion
             } else {
                 print("Invalid region: \(stringRegion)")
