@@ -39,6 +39,6 @@ public class AuthHelper {
         guard let locationCredentialsProvider = self.locationCredentialsProvider else {
             return nil
         }
-        return AmazonLocationClient(locationCredentialsProvider: self.locationCredentialsProvider!)
+        return AmazonLocationClient(locationCredentialsProvider: locationCredentialsProvider)
     }
 }

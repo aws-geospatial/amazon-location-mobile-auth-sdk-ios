@@ -100,4 +100,23 @@ final class AuthHelperTests: XCTestCase {
         XCTAssertEqual(searchResponse!.status.statusCode, 200)
         XCTAssertNotNil(searchResponse!.data!.Results.first!.Place.Label, "Address found")
     }
+    
+    
+    func testSearchByPositionAPIKey() async throws {
+        let config = readTestConfig()
+        let apiKey = config["apiKey"]!
+        let region = config["region"]!
+        let placeIndex = config["placeIndex"]!
+        
+        let authHelper = AuthHelper()
+        _ = authHelper.authenticateWithApiKey(apiKey: apiKey, region: region)
+        
+        let amazonClient = authHelper.getLocationClient()
+        let searchRequest = SearchByPositionRequest(language: "en" , maxResults: 10, position: [-71.985564, 41.758023])
+        
+        let searchResponse = try? await amazonClient!.searchPosition(indexName: placeIndex, request: searchRequest)
+    
+        XCTAssertEqual(searchResponse!.status.statusCode, 200)
+        XCTAssertNotNil(searchResponse!.data!.Results.first!.Place.Label, "Address found")
+    }
 }

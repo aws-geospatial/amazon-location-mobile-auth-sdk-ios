@@ -6,4 +6,6 @@ public enum AmazonService: String {
 
 public protocol AmazonLocationEndpoint {
     func url() -> String
+    
+    func isApiKeyEndpoint() -> Bool
 }
