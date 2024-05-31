@@ -1,9 +1,6 @@
 import XCTest
 @testable import AmazonLocationiOSAuthSDK
 import AWSLocation
-import AWSCognitoIdentityProvider
-import AWSClientRuntime
-import AWSCognitoIdentity
 
 final class AuthHelperTests: XCTestCase {
     
