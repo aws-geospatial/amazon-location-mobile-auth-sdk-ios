@@ -109,25 +109,6 @@ public class AmazonLocationClient {
                 let response = try await locationClient!.searchPlaceIndexForPosition(input: input)
                 return response
             }
-            else if locationProvider.getApiProvider() != nil {
-                let endpoint = SearchByPositionEndpoint(region: locationProvider.getRegion()!, indexName: indexName, apiKey: locationProvider.getApiProvider() != nil ? locationProvider.getAPIKey() : nil)
-                let request = SearchByPositionRequest(language: input.language!, maxResults: input.maxResults!, position: input.position!)
-                let response: AmazonLocationResponse<SearchByPositionResponse, AmazonErrorResponse> = try await sendRequest(
-                           serviceName: .Location,
-                           endpoint: endpoint,
-                           httpMethod: .POST,
-                           requestBody: request,
-                           successType: SearchByPositionResponse.self,
-                           errorType: AmazonErrorResponse.self
-                       )
-                       
-                if let responseData = response.data {
-                    return nil // TO DO: convert object to 
-                }
-                else if let responseError = response.error {
-                    throw responseError
-                }
-            }
         }
         catch {
             throw error
