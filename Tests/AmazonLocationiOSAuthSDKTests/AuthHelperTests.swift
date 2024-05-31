@@ -1,5 +1,9 @@
 import XCTest
 @testable import AmazonLocationiOSAuthSDK
+import AWSLocation
+import AWSCognitoIdentityProvider
+import AWSClientRuntime
+import AWSCognitoIdentity
 
 final class AuthHelperTests: XCTestCase {
     
@@ -93,14 +97,12 @@ final class AuthHelperTests: XCTestCase {
         _ = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolId, region: region)
         
         let amazonClient = authHelper.getLocationClient()
-        let searchRequest = SearchByPositionRequest(language: "en" , maxResults: 10, position: [-71.985564, 41.758023])
+        let input = SearchPlaceIndexForPositionInput(indexName: placeIndex,language: "en", position: [-71.985564, 41.758023])
         
-        let searchResponse = try? await amazonClient!.searchPosition(indexName: placeIndex, request: searchRequest)
+        let searchOutput = try? await amazonClient!.searchPosition(indexName: placeIndex, input: input)
     
-        XCTAssertEqual(searchResponse!.status.statusCode, 200)
-        XCTAssertNotNil(searchResponse!.data!.Results.first!.Place.Label, "Address found")
+        XCTAssertNotNil(searchOutput?.results?.first?.place?.label, "Address found")
     }
-    
     
     func testSearchByPositionAPIKey() async throws {
         let config = readTestConfig()
@@ -112,11 +114,10 @@ final class AuthHelperTests: XCTestCase {
         _ = authHelper.authenticateWithApiKey(apiKey: apiKey, region: region)
         
         let amazonClient = authHelper.getLocationClient()
-        let searchRequest = SearchByPositionRequest(language: "en" , maxResults: 10, position: [-71.985564, 41.758023])
+        let input = SearchPlaceIndexForPositionInput(indexName: placeIndex,language: "en", position: [-71.985564, 41.758023])
         
-        let searchResponse = try? await amazonClient!.searchPosition(indexName: placeIndex, request: searchRequest)
+        let searchOutput = try? await amazonClient!.searchPosition(indexName: placeIndex, input: input)
     
-        XCTAssertEqual(searchResponse!.status.statusCode, 200)
-        XCTAssertNotNil(searchResponse!.data!.Results.first!.Place.Label, "Address found")
+        XCTAssertNotNil(searchOutput?.results?.first?.place?.label, "Address found")
     }
 }

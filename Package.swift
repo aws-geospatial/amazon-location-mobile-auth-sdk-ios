@@ -15,6 +15,8 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         .package(url: "https://github.com/evgenyneu/keychain-swift.git", from: "20.0.0"),
+        //.package(name: "aws-sdk-swift", path: "~/Downloads/aws-sdk-swift/")
+        .package(url: "https://github.com/awslabs/aws-sdk-swift", .upToNextMajor(from: "0.44.0")),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -23,6 +25,10 @@ let package = Package(
                     name: "AmazonLocationiOSAuthSDK",
                     dependencies: [
                         .product(name: "KeychainSwift", package: "keychain-swift"),
+                        .product(name: "AWSLocation", package: "aws-sdk-swift"),
+                        .product(name: "AWSCognitoIdentityProvider", package: "aws-sdk-swift"),
+                        .product(name: "AWSCognitoIdentity", package: "aws-sdk-swift"),
+                        .product(name: "AWSClientRuntime", package: "aws-sdk-swift")
                         // Add other AWS services as needed
                     ],
                     path: "Sources"),

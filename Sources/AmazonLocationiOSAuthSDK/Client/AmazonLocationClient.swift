@@ -1,10 +1,22 @@
 import Foundation
+import AWSLocation
+import AWSClientRuntime
 
 public class AmazonLocationClient {
     public let locationProvider: LocationCredentialsProvider
+    public var locationClient: LocationClient?
     
     public init(locationCredentialsProvider: LocationCredentialsProvider) {
         self.locationProvider = locationCredentialsProvider
+    }
+    
+    public func initialiseLocationClient() async throws {
+        if let credentials = locationProvider.getCognitoProvider()?.getCognitoCredentials() {
+            let resolver:AWSClientRuntime.StaticAWSCredentialIdentityResolver? =  try StaticAWSCredentialIdentityResolver(AWSCredentialIdentity(accessKey: credentials.accessKeyId, secret: credentials.secretKey, expiration: credentials.expiration, sessionToken: credentials.sessionToken))
+            
+            let clientConfig = try await LocationClient.LocationClientConfiguration(awsCredentialIdentityResolver: resolver, region: locationProvider.getRegion(), signingRegion: locationProvider.getRegion())
+            self.locationClient = LocationClient(config: clientConfig)
+        }
     }
     
     public func sendRequest<T: Decodable, E: AmazonBaseErrorResponse & Error>(
@@ -88,19 +100,38 @@ public class AmazonLocationClient {
         }
     }
     
-    public func searchPosition(indexName: String, request: SearchByPositionRequest) async throws -> AmazonLocationResponse<SearchByPositionResponse, AmazonErrorResponse> {
-        
-        let endpoint = SearchByPositionEndpoint(region: locationProvider.getRegion()!, indexName: indexName, apiKey: locationProvider.getApiProvider() != nil ? locationProvider.getAPIKey() : nil)
-        
-        let result: AmazonLocationResponse<SearchByPositionResponse, AmazonErrorResponse> = try await sendRequest(
-            serviceName: .Location,
-            endpoint: endpoint,
-            httpMethod: .POST,
-            requestBody: request,
-            successType: SearchByPositionResponse.self,
-            errorType: AmazonErrorResponse.self
-        )
-        
-        return result
+    public func searchPosition(indexName: String, input: SearchPlaceIndexForPositionInput) async throws -> SearchPlaceIndexForPositionOutput? {
+        do {
+            if locationProvider.getCognitoProvider() != nil {
+                if locationClient == nil {
+                    try await initialiseLocationClient()
+                }
+                let response = try await locationClient!.searchPlaceIndexForPosition(input: input)
+                return response
+            }
+            else if locationProvider.getApiProvider() != nil {
+                let endpoint = SearchByPositionEndpoint(region: locationProvider.getRegion()!, indexName: indexName, apiKey: locationProvider.getApiProvider() != nil ? locationProvider.getAPIKey() : nil)
+                let request = SearchByPositionRequest(language: input.language!, maxResults: input.maxResults!, position: input.position!)
+                let response: AmazonLocationResponse<SearchByPositionResponse, AmazonErrorResponse> = try await sendRequest(
+                           serviceName: .Location,
+                           endpoint: endpoint,
+                           httpMethod: .POST,
+                           requestBody: request,
+                           successType: SearchByPositionResponse.self,
+                           errorType: AmazonErrorResponse.self
+                       )
+                       
+                if let responseData = response.data {
+                    return nil // TO DO: convert object to 
+                }
+                else if let responseError = response.error {
+                    throw responseError
+                }
+            }
+        }
+        catch {
+            throw error
+        }
+        return nil
     }
 }
