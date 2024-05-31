@@ -25,7 +25,6 @@ let package = Package(
                     dependencies: [
                         .product(name: "KeychainSwift", package: "keychain-swift"),
                         .product(name: "AWSLocation", package: "aws-sdk-swift"),
-                        .product(name: "AWSCognitoIdentityProvider", package: "aws-sdk-swift"),
                         .product(name: "AWSCognitoIdentity", package: "aws-sdk-swift"),
                         .product(name: "AWSClientRuntime", package: "aws-sdk-swift")
                         // Add other AWS services as needed
