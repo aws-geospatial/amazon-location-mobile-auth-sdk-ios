@@ -460,7 +460,7 @@ public struct AWSSigner {
 
     /// get signing key
     func signingKey(date: String) -> SymmetricKey {
-        let kDate = HMAC<SHA256>.authenticationCode(for: [UInt8](date.utf8), using: SymmetricKey(data: Array("AWS4\(self.credentials.secretAccessKey)".utf8)))
+        let kDate = HMAC<SHA256>.authenticationCode(for: [UInt8](date.utf8), using: SymmetricKey(data: Array("AWS4\(self.credentials.secretKey)".utf8)))
         let kRegion = HMAC<SHA256>.authenticationCode(for: [UInt8](self.region.utf8), using: SymmetricKey(data: kDate))
         let kService = HMAC<SHA256>.authenticationCode(for: [UInt8](self.serviceName.utf8), using: SymmetricKey(data: kRegion))
         let kSigning = HMAC<SHA256>.authenticationCode(for: [UInt8]("aws4_request".utf8), using: SymmetricKey(data: kService))

@@ -11,14 +11,18 @@ public class AmazonLocationCognitoCredentialsProvider {
     }
     
     internal func getCognitoCredentials() -> CognitoCredentials? {
-        if let cognitoCredentialsString = KeyChainHelper.get(key: .CognitoCredentials), let cognitoCredentials = CognitoCredentials.decodeCognitoCredentials(jsonString: cognitoCredentialsString) {
-            self.cognitoCredentials = cognitoCredentials
+        if self.cognitoCredentials != nil && self.cognitoCredentials!.expiration! > Date() {
+            return self.cognitoCredentials
         }
-        return cognitoCredentials
+        else if let cognitoCredentialsString = KeyChainHelper.get(key: .CognitoCredentials), let cognitoCredentials = CognitoCredentials.decodeCognitoCredentials(jsonString: cognitoCredentialsString) {
+            self.cognitoCredentials = cognitoCredentials
+            return self.cognitoCredentials
+        }
+        return self.cognitoCredentials
     }
     
     public func refreshCognitoCredentialsIfExpired() async throws {
-        if let savedCredentials = getCognitoCredentials(), savedCredentials.expiryDate! > Date() {
+        if let savedCredentials = getCognitoCredentials(), savedCredentials.expiration! > Date() {
             cognitoCredentials = savedCredentials
         } else {
             try? await refreshCognitoCredentials()
@@ -26,8 +30,7 @@ public class AmazonLocationCognitoCredentialsProvider {
     }
     
     public func refreshCognitoCredentials() async throws {
-        if let identityPoolId = self.identityPoolId, let region = self.region {
-           let cognitoCredentials = try await generateCognitoCredentials(identityPoolId: identityPoolId, region: region)
+        if let identityPoolId = self.identityPoolId, let region = self.region, let cognitoCredentials = try await CognitoCredentialsProvider.generateCognitoCredentials(identityPoolId: identityPoolId, region: region) {
            setCognitoCredentials(cognitoCredentials: cognitoCredentials)
         }
     }
@@ -35,24 +38,5 @@ public class AmazonLocationCognitoCredentialsProvider {
     private func setCognitoCredentials(cognitoCredentials: CognitoCredentials) {
         self.cognitoCredentials = cognitoCredentials
         KeyChainHelper.save(value: CognitoCredentials.encodeCognitoCredentials(credential: cognitoCredentials)!, key: .CognitoCredentials)
-    }
-    
-    private func generateCognitoCredentials(identityPoolId: String, region: String) async throws -> CognitoCredentials {
-        guard let identityId = try await CognitoCredentialsProvider.getAWSIdentityId(identityPoolId: identityPoolId, region: region) else {
-            throw CognitoError.identityIdNotFound
-        }
-        
-        guard let response = try await CognitoCredentialsProvider.getAWSCredentials(identityId: identityId, region: region),
-              let credentials = response["Credentials"] as? [String:Any],
-              let accessKeyId = credentials["AccessKeyId"] as? String,
-              let secretAccessKey = credentials["SecretKey"] as? String,
-              let sessionToken = credentials["SessionToken"] as? String,
-              let expirationInterval = credentials["Expiration"] as? NSNumber
-        else {
-            throw CognitoError.credentialsNotFound
-        }
-        
-        let expiryDate = Date(timeIntervalSince1970: TimeInterval(truncating: expirationInterval))
-        return CognitoCredentials(identityPoolId: identityPoolId, accessKeyId: accessKeyId, secretAccessKey: secretAccessKey, sessionToken: sessionToken, expiryDate: expiryDate)
     }
 }

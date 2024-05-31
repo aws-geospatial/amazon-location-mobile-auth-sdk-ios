@@ -1,59 +1,49 @@
 import Foundation
+import AWSCognitoIdentity
 
 public class CognitoCredentialsProvider {
+    private static var cognitoIdentityClient: CognitoIdentityClient?
     
-    static func getAWSIdentityId(identityPoolId: String, region: String) async throws -> String? {
-        let url = "https://cognito-identity.\(region).amazonaws.com/"
-        let requestBody = "{\"IdentityPoolId\": \"\(identityPoolId)\"}"
-        let mediaType = "application/x-amz-json-1.1"
-        
-        guard let requestUrl = URL(string: url) else {
-            print("Error: Invalid URL")
-            return nil
-        }
-        
-        var request = URLRequest(url: requestUrl)
-        request.httpMethod = "POST"
-        request.addValue("application/x-amz-json-1.1", forHTTPHeaderField: "Content-Type")
-        request.addValue(mediaType, forHTTPHeaderField: "Accept")
-        request.addValue("AWSCognitoIdentityService.GetId", forHTTPHeaderField: "X-Amz-Target")
-        request.httpBody = requestBody.data(using: .utf8)
-        
+    private static func getAWSIdentityId(identityPoolId: String, region: String) async throws -> GetIdOutput {
         do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            guard let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                  let identityId = jsonResponse["IdentityId"] as? String
-            else {
-                return nil
+            if cognitoIdentityClient == nil {
+                cognitoIdentityClient = try AWSCognitoIdentity.CognitoIdentityClient(region: region)
             }
-            return identityId
+            let idInput = GetIdInput(identityPoolId: identityPoolId)
+            let identity = try await cognitoIdentityClient!.getId(input: idInput)
+            return identity
         } catch {
             throw error
         }
     }
     
-    static func getAWSCredentials(identityId: String, region: String) async throws -> [String: Any]? {
-        let url = "https://cognito-identity.\(region).amazonaws.com/"
-        let requestBody = "{\"IdentityId\": \"\(identityId)\"}"
-        let mediaType = "application/x-amz-json-1.1"
-        
-        guard let requestUrl = URL(string: url) else {
-            print("Error: Invalid URL")
-            return nil
-        }
-        
-        var request = URLRequest(url: requestUrl)
-        request.httpMethod = "POST"
-        request.addValue("application/x-amz-json-1.1", forHTTPHeaderField: "Content-Type")
-        request.addValue(mediaType, forHTTPHeaderField: "Accept")
-        request.addValue("AWSCognitoIdentityService.GetCredentialsForIdentity", forHTTPHeaderField: "X-Amz-Target")
-        request.httpBody = requestBody.data(using: .utf8)
-        
+    private static func getAWSCredentials(identity: GetIdOutput, region: String) async throws -> GetCredentialsForIdentityOutput {
         do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            return try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+            if cognitoIdentityClient == nil {
+                cognitoIdentityClient = try AWSCognitoIdentity.CognitoIdentityClient(region: region)
+            }
+            let credentialsInput = GetCredentialsForIdentityInput(identityId: identity.identityId)
+            let credentials = try await cognitoIdentityClient!.getCredentialsForIdentity(input: credentialsInput)
+            return credentials
+            
         } catch {
             throw error
         }
+    }
+    
+    static func generateCognitoCredentials(identityPoolId: String, region: String) async throws  -> CognitoCredentials?
+    {
+        let identity = try await getAWSIdentityId(identityPoolId: identityPoolId, region: region)
+        
+        if let credentialsOutput = try await getAWSCredentials(identity: identity, region: region).credentials, 
+            let accessKeyId = credentialsOutput.accessKeyId, 
+            let secretKey = credentialsOutput.secretKey,
+            let sessionToken = credentialsOutput.sessionToken, 
+            let expiration = credentialsOutput.expiration  {
+            
+            let cognitoCredentials = CognitoCredentials(identityPoolId: identityPoolId, accessKeyId: accessKeyId, secretKey: secretKey, sessionToken: sessionToken, expiration: expiration)
+            return cognitoCredentials
+        }
+        return nil
     }
 }

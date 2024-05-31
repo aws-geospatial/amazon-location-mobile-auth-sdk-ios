@@ -3,16 +3,16 @@ import Foundation
 public struct CognitoCredentials: Codable {
     public let identityPoolId: String
     public let accessKeyId: String
-    public let secretAccessKey: String
+    public let secretKey: String
     public let sessionToken: String?
-    public let expiryDate: Date?
+    public let expiration: Date?
 
-    public init(identityPoolId: String, accessKeyId: String, secretAccessKey: String, sessionToken: String? = nil, expiryDate: Date? = nil) {
+    public init(identityPoolId: String, accessKeyId: String, secretKey: String, sessionToken: String? = nil, expiration: Date? = nil) {
         self.identityPoolId = identityPoolId
         self.accessKeyId = accessKeyId
-        self.secretAccessKey = secretAccessKey
+        self.secretKey = secretKey
         self.sessionToken = sessionToken
-        self.expiryDate = expiryDate
+        self.expiration = expiration
     }
     
     
