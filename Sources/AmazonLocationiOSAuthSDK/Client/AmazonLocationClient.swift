@@ -1,6 +1,7 @@
 import Foundation
 import AWSLocation
 import AWSClientRuntime
+import SmithyIdentityAPI
 
 public class AmazonLocationClient {
     public let locationProvider: LocationCredentialsProvider
