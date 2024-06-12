@@ -29,7 +29,6 @@ let package = Package(
                         .product(name: "AWSCognitoIdentity", package: "aws-sdk-swift"),
                         .product(name: "AWSClientRuntime", package: "aws-sdk-swift"),
                         .product(name: "AWSSDKHTTPAuth", package: "aws-sdk-swift"),
-                        .product(name: "SmithyTestUtil", package: "smithy-swift"),
                         .product(name: "SmithyHTTPAPI", package: "smithy-swift")
                         // Add other AWS services as needed
                     ],
