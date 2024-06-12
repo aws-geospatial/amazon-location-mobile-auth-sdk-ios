@@ -94,11 +94,10 @@ final class AuthHelperTests: XCTestCase {
         let credentialsProvider = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolID, region: region)!
         let cognitoProvider = credentialsProvider!.getCognitoProvider()!
         
-        let awsSigner = AWSSignerV4(cognitoProvider: cognitoProvider)
+        let awsSigner = AWSSignerV4(amazonLocationCognitoCredentialsProvider: cognitoProvider, serviceName: "geo")
         let url = URL(string: "https://maps.geo.us-east-1.amazonaws.com/maps/v0/maps/TestQuickStart/style-descriptor")!
-        let expiration: TimeInterval = 60
-        
-        let signedURL = try await awsSigner.signURL(url: url, serviceName: "geo", expiration: expiration)
-        XCTAssertNotNil(signedURL?.absoluteString)
+
+        let signedURL = awsSigner.signURL(url: url, expires: TimeAmount.hours(1))
+        XCTAssertNotNil(signedURL.absoluteString)
     }
 }
