@@ -19,7 +19,7 @@ public class AWSSignerV4 {
         if let credentials = cognitoProvider.getCognitoCredentials(), let region = cognitoProvider.region {
             let resolver:AWSClientRuntime.StaticAWSCredentialIdentityResolver? =  try StaticAWSCredentialIdentityResolver(AWSCredentialIdentity(accessKey: credentials.accessKeyId, secret: credentials.secretKey, expiration: credentials.expiration, sessionToken: credentials.sessionToken))
             
-            let requestBuilder = SdkHttpRequestBuilder().withHost(url.host!).withPath(url.absoluteString)
+            let requestBuilder = SdkHttpRequestBuilder().withHost(url.host!).withPath(url.path)
             
             let signedURL = await AWSSigV4Signer.sigV4SignedURL(requestBuilder: requestBuilder, awsCredentialIdentityResolver: resolver!, signingName: serviceName, signingRegion: region, date: Date(), expiration: expiration, signingAlgorithm: SigningAlgorithm.sigv4)
             return signedURL
