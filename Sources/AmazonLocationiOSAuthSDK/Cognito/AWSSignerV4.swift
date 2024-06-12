@@ -21,7 +21,7 @@ public class AWSSignerV4 {
             
             let requestBuilder = SdkHttpRequestBuilder().withHost(url.host!).withPath(url.path)
             
-            let signedURL = await AWSSigV4Signer.sigV4SignedURL(requestBuilder: requestBuilder, awsCredentialIdentityResolver: resolver!, signingName: serviceName, signingRegion: region, date: Date(), expiration: expiration, signingAlgorithm: SigningAlgorithm.sigv4)
+            let signedURL = await AWSSigV4Signer.sigV4SignedURL(requestBuilder: requestBuilder, awsCredentialIdentityResolver: resolver!, signingName: serviceName, signingRegion: region, date: Date(), expiration: expiration, signingAlgorithm: SigningAlgorithm.sigv4a)
             return signedURL
         }
         return nil
