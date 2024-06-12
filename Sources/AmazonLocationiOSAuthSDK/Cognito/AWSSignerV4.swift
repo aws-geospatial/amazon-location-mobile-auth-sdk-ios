@@ -5,7 +5,7 @@ import SmithyHTTPAuthAPI
 import SmithyHTTPAPI
 import AWSSDKHTTPAuth
 
-public class AWSignerV4 {
+public class AWSSignerV4 {
     
     private let cognitoProvider: AmazonLocationCognitoCredentialsProvider
     
@@ -14,7 +14,7 @@ public class AWSignerV4 {
         self.cognitoProvider = cognitoProvider
     }
     
-    public func signURL(cognitoProvider: AmazonLocationCognitoCredentialsProvider, url: URL, serviceName: String, expiration: TimeInterval) async throws -> URL? {
+    public func signURL(url: URL, serviceName: String, expiration: TimeInterval) async throws -> URL? {
         try await cognitoProvider.refreshCognitoCredentialsIfExpired()
         if let credentials = cognitoProvider.getCognitoCredentials(), let region = cognitoProvider.region {
             let resolver:AWSClientRuntime.StaticAWSCredentialIdentityResolver? =  try StaticAWSCredentialIdentityResolver(AWSCredentialIdentity(accessKey: credentials.accessKeyId, secret: credentials.secretKey, expiration: credentials.expiration, sessionToken: credentials.sessionToken))
