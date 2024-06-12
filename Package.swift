@@ -16,6 +16,7 @@ let package = Package(
         // Dependencies declare other packages that this package depends on.
         .package(url: "https://github.com/evgenyneu/keychain-swift.git", from: "20.0.0"),
         .package(url: "https://github.com/awslabs/aws-sdk-swift", .upToNextMajor(from: "0.44.0")),
+        .package(url: "https://github.com/smithy-lang/smithy-swift", .upToNextMajor(from: "0.50.0"))
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -26,7 +27,10 @@ let package = Package(
                         .product(name: "KeychainSwift", package: "keychain-swift"),
                         .product(name: "AWSLocation", package: "aws-sdk-swift"),
                         .product(name: "AWSCognitoIdentity", package: "aws-sdk-swift"),
-                        .product(name: "AWSClientRuntime", package: "aws-sdk-swift")
+                        .product(name: "AWSClientRuntime", package: "aws-sdk-swift"),
+                        .product(name: "AWSSDKHTTPAuth", package: "aws-sdk-swift"),
+                        .product(name: "SmithyTestUtil", package: "smithy-swift"),
+                        .product(name: "SmithyHTTPAPI", package: "smithy-swift")
                         // Add other AWS services as needed
                     ],
                     path: "Sources"),

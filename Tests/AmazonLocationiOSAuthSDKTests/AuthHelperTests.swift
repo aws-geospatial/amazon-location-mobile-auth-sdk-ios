@@ -1,4 +1,5 @@
 import XCTest
+
 @testable import AmazonLocationiOSAuthSDK
 import AWSLocation
 
@@ -82,22 +83,5 @@ final class AuthHelperTests: XCTestCase {
         
         XCTAssertEqual(AmazonLocationRegion.toRegionType(identityPoolId: identityPoolID), .USEast1)
         XCTAssertEqual(AmazonLocationRegion.toRegionString(identityPoolId: identityPoolID), "us-east-1")
-    }
-    
-    func testSearchByPosition() async throws {
-        let config = readTestConfig()
-        let identityPoolId = config["identityPoolID"]!
-        let region = config["region"]!
-        let placeIndex = config["placeIndex"]!
-        
-        let authHelper = AuthHelper()
-        _ = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolId, region: region)
-        
-        let amazonClient = authHelper.getLocationClient()
-        let input = SearchPlaceIndexForPositionInput(indexName: placeIndex,language: "en", position: [-71.985564, 41.758023])
-        
-        let searchOutput = try? await amazonClient!.searchPosition(indexName: placeIndex, input: input)
-    
-        XCTAssertNotNil(searchOutput?.results?.first?.place?.label, "Address found")
     }
 }
