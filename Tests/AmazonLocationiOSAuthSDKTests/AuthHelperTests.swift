@@ -84,4 +84,21 @@ final class AuthHelperTests: XCTestCase {
         XCTAssertEqual(AmazonLocationRegion.toRegionType(identityPoolId: identityPoolID), .USEast1)
         XCTAssertEqual(AmazonLocationRegion.toRegionString(identityPoolId: identityPoolID), "us-east-1")
     }
+    
+    func testAWSSigner() async throws {
+        let config = readTestConfig()
+        
+        let identityPoolID = config["identityPoolID"]!
+        let region = config["region"]!
+        let authHelper = AuthHelper()
+        let credentialsProvider = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolID, region: region)!
+        let cognitoProvider = credentialsProvider!.getCognitoProvider()!
+        
+        let awsSigner = AWSSignerV4(cognitoProvider: cognitoProvider)
+        let url = URL(string: "https://maps.geo.us-east-1.amazonaws.com/maps/v0/maps/TestQuickStart/style-descriptor")!
+        let expiration: TimeInterval = 60
+        
+        let signedURL = try await awsSigner.signURL(url: url, serviceName: "geo", expiration: expiration)
+        XCTAssertNotNil(signedURL?.absoluteString)
+    }
 }
