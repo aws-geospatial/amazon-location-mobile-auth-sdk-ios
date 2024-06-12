@@ -19,7 +19,8 @@ public class AWSSignerV4 {
         if let credentials = cognitoProvider.getCognitoCredentials(), let region = cognitoProvider.region {
             let resolver:AWSClientRuntime.StaticAWSCredentialIdentityResolver? =  try StaticAWSCredentialIdentityResolver(AWSCredentialIdentity(accessKey: credentials.accessKeyId, secret: credentials.secretKey, expiration: credentials.expiration, sessionToken: credentials.sessionToken))
             
-            let headers = Headers(["host": Self.hostname(from: url)])
+            var headers = Headers()
+            headers.add(name: "host", value: Self.hostname(from: url))
             let requestBuilder = SdkHttpRequestBuilder().withHost(url.host!).withPath(url.path)
                 .withHeaders(headers)
             
