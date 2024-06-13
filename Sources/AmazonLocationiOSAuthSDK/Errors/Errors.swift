@@ -4,5 +4,5 @@ enum CognitoError: Error {
 }
 
 enum LocationProviderError: Error {
-    case noCognitoOrApiKeyFound
+    case apiKeyNotFound
 }

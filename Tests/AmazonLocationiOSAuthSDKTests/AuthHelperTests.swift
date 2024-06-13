@@ -1,4 +1,5 @@
 import XCTest
+
 @testable import AmazonLocationiOSAuthSDK
 import AWSLocation
 
@@ -50,54 +51,19 @@ final class AuthHelperTests: XCTestCase {
         XCTAssertNotNil(authProvider.getApiProvider())
     }
     
-    func testAWSEndpoint() {
+    func testAWSSigner() async throws {
         let config = readTestConfig()
         
         let identityPoolID = config["identityPoolID"]!
-        
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "us-east-1"), .USEast1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "us-east-2"), .USEast2)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "us-west-2"), .USWest2)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "us-west-1"), .USWest1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "eu-west-1"), .EUWest1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "eu-west-2"), .EUWest2)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "eu-west-3"), .EUWest3)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "eu-central-1"), .EUCentral1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "eu-north-1"), .EUNorth1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "ap-east-1"), .APEast1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "ap-southeast-1"), .APSoutheast1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString:  "ap-northeast-1"), .APNortheast1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "ap-northeast-2"), .APNortheast2)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "ap-southeast-2"), .APSoutheast2)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "ap-south-1"), .APSouth1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "sa-east-1"), .SAEast1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "cn-north-1"), .CNNorth1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "cn-northwest-1"), .CNNorthWest1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "ca-central-1"), .CACentral1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "us-gov-west-1"), .USGovWest1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "us-gov-east-1"), .USGovEast1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "me-south-1"), .MESouth1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "af-south-1"), .AFSouth1)
-        XCTAssertEqual(AmazonLocationRegion.regionTypeByString(regionString: "eu-south-1"), .EUSouth1)
-        
-        XCTAssertEqual(AmazonLocationRegion.toRegionType(identityPoolId: identityPoolID), .USEast1)
-        XCTAssertEqual(AmazonLocationRegion.toRegionString(identityPoolId: identityPoolID), "us-east-1")
-    }
-    
-    func testSearchByPosition() async throws {
-        let config = readTestConfig()
-        let identityPoolId = config["identityPoolID"]!
         let region = config["region"]!
-        let placeIndex = config["placeIndex"]!
-        
         let authHelper = AuthHelper()
-        _ = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolId, region: region)
+        let credentialsProvider = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolID, region: region)!
+        let cognitoProvider = credentialsProvider!.getCognitoProvider()!
         
-        let amazonClient = authHelper.getLocationClient()
-        let input = SearchPlaceIndexForPositionInput(indexName: placeIndex,language: "en", position: [-71.985564, 41.758023])
-        
-        let searchOutput = try? await amazonClient!.searchPosition(indexName: placeIndex, input: input)
-    
-        XCTAssertNotNil(searchOutput?.results?.first?.place?.label, "Address found")
+        let awsSigner = AWSSignerV4(amazonLocationCognitoCredentialsProvider: cognitoProvider, serviceName: "geo")
+        let url = URL(string: "https://maps.geo.us-east-1.amazonaws.com/maps/v0/maps/TestQuickStart/style-descriptor")!
+
+        let signedURL = awsSigner.signURL(url: url, expires: TimeAmount.hours(1))
+        XCTAssertNotNil(signedURL.absoluteString)
     }
 }

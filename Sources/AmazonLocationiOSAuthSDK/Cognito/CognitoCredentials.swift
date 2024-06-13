@@ -24,14 +24,14 @@ public struct CognitoCredentials: Codable {
             let jsonString = String(data: jsonData, encoding: .utf8)
             return jsonString
         } catch {
-            print("Error encoding CognitoCredential to JSON: \(error)")
+            Logger.shared.log("Error encoding CognitoCredential to JSON: \(error)")
             return nil
         }
     }
 
     public static func decodeCognitoCredentials(jsonString: String) -> CognitoCredentials? {
         guard let jsonData = jsonString.data(using: .utf8) else {
-            print("Invalid JSON string")
+            Logger.shared.log("Invalid JSON string")
             return nil
         }
         
@@ -41,7 +41,7 @@ public struct CognitoCredentials: Codable {
             let credential = try decoder.decode(CognitoCredentials.self, from: jsonData)
             return credential
         } catch {
-            print("Error decoding JSON to CognitoCredential: \(error)")
+            Logger.shared.log("Error decoding JSON to CognitoCredential: \(error)")
             return nil
         }
     }

@@ -38,17 +38,6 @@ func exampleCognitoLogin() {
 }
 ```
 
-You can use the location client to make calls to Amazon Location Service. Here is an example that searches for places near a specified latitude and longitude:
-
-``` swift
-let searchPlaceIndexForPositionRequest = AWSLocationSearchPlaceIndexForPositionRequest()!
-
-searchPlaceIndexForPositionRequest.indexName = "My-Place-Index-Name"
-searchPlaceIndexForPositionRequest.position = [30.405423, -97.718833]
-
-let nearbyPlaces = locationClient.searchPlaceIndex(forPosition: searchPlaceIndexForPositionRequest)
-```
-
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.

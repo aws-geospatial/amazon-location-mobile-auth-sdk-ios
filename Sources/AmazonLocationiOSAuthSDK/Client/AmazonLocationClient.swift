@@ -3,6 +3,37 @@ import AWSLocation
 import AWSClientRuntime
 import SmithyIdentityAPI
 
+public enum HTTPMethod: String {
+    case GET
+    case POST
+    case PUT
+    case DELETE
+}
+
+public struct HTTPHeaders {
+    private var headers: [String: String]
+
+    public init() {
+        headers = [:]
+    }
+
+    mutating func add(name: String, value: String) {
+        headers[name] = value
+    }
+
+    mutating func remove(name: String) {
+        headers.removeValue(forKey: name)
+    }
+
+    func value(forName name: String) -> String? {
+        return headers[name]
+    }
+
+    func allHeaders() -> [String: String] {
+        return headers
+    }
+}
+
 public class AmazonLocationClient {
     public let locationProvider: LocationCredentialsProvider
     public var locationClient: LocationClient?
@@ -20,7 +51,7 @@ public class AmazonLocationClient {
         }
     }
     
-    public func sendRequest<T: Decodable, E: AmazonBaseErrorResponse & Error>(
+    public func sendAPIRequest<T: Decodable, E: AmazonBaseErrorResponse & Error>(
         serviceName: AmazonService,
         endpoint: AmazonLocationEndpoint,
         httpMethod: HTTPMethod,
@@ -41,38 +72,24 @@ public class AmazonLocationClient {
         var headers = HTTPHeaders()
         headers.add(name: "Content-Type", value: "application/json")
         
-        // Sign headers with AWS credentials or throw error if not available
-        if locationProvider.getCognitoProvider() != nil {
-            signHeaders(&request, url: url, serviceName: serviceName, httpMethod: httpMethod, headers: headers, requestData: request.httpBody)
-        } else if !endpoint.isApiKeyEndpoint() {
-            throw LocationProviderError.noCognitoOrApiKeyFound
+        if !endpoint.isApiKeyEndpoint() {
+            throw LocationProviderError.apiKeyNotFound
         }
 
         // Execute the request and handle the response
-        return try await executeRequest(request, successType: successType, errorType: errorType)
+        return try await executeAPIRequest(request, successType: successType, errorType: errorType)
     }
 
     private func encodeRequestBody(_ requestBody: EncodableRequest) throws -> Data {
         do {
             return try requestBody.toData()
         } catch {
-            print("Error: Unable to encode request body as JSON")
+            Logger.shared.log("Error: Unable to encode request body as JSON")
             throw error
         }
     }
 
-    private func signHeaders(_ request: inout URLRequest, url: URL, serviceName: AmazonService, httpMethod: HTTPMethod, headers: HTTPHeaders, requestData: Data?) {
-        
-        let cognitoCredentials = locationProvider.getCognitoProvider()!.getCognitoCredentials()
-        let signer = AWSSigner(credentials: cognitoCredentials!, serviceName: serviceName.rawValue, region: locationProvider.getRegion()!)
-        let signedHeaders = signer.signHeaders(url: url, method: httpMethod, headers: headers, body: requestData != nil ? .data(requestData!) : nil)
-        
-        for (name, value) in signedHeaders.allHeaders() {
-            request.addValue(value, forHTTPHeaderField: name)
-        }
-    }
-
-    private func executeRequest<T: Decodable, E: AmazonBaseErrorResponse & Error>(
+    private func executeAPIRequest<T: Decodable, E: AmazonBaseErrorResponse & Error>(
         _ request: URLRequest,
         successType: T.Type,
         errorType: E.Type
@@ -96,24 +113,8 @@ public class AmazonLocationClient {
                 return AmazonLocationResponse(status: status, data: nil, error: errorResponse)
             }
         } catch {
-            print("Error: \(error.localizedDescription)")
+            Logger.shared.log("Error: \(error.localizedDescription)")
             throw error
         }
-    }
-    
-    public func searchPosition(indexName: String, input: SearchPlaceIndexForPositionInput) async throws -> SearchPlaceIndexForPositionOutput? {
-        do {
-            if locationProvider.getCognitoProvider() != nil {
-                if locationClient == nil {
-                    try await initialiseLocationClient()
-                }
-                let response = try await locationClient!.searchPlaceIndexForPosition(input: input)
-                return response
-            }
-        }
-        catch {
-            throw error
-        }
-        return nil
     }
 }
