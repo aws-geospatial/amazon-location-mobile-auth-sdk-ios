@@ -109,7 +109,7 @@ public struct TimeAmount: Hashable {
     }
 }
 
-/// Amazon Web Services V4 Signer
+/// Amazon request V4 Signer (This signer is for external aws signing such as Maps cognito signing)
 public struct AWSSignerV4 {
     /// Security credentials for accessing AWS services
     public let credentials: CognitoCredentials
