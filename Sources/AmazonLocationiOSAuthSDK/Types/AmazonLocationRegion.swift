@@ -39,7 +39,7 @@ public class AmazonLocationRegion {
             if let extractedRegion = AmazonLocationRegion.regionTypeByString(regionString: stringRegion) {
                 region = extractedRegion
             } else {
-                print("Invalid region: \(stringRegion)")
+                Logger.shared.log("Invalid region: \(stringRegion)")
             }
         }
         return region

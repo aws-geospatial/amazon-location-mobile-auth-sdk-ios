@@ -84,7 +84,7 @@ public class AmazonLocationClient {
         do {
             return try requestBody.toData()
         } catch {
-            print("Error: Unable to encode request body as JSON")
+            Logger.shared.log("Error: Unable to encode request body as JSON")
             throw error
         }
     }
@@ -113,7 +113,7 @@ public class AmazonLocationClient {
                 return AmazonLocationResponse(status: status, data: nil, error: errorResponse)
             }
         } catch {
-            print("Error: \(error.localizedDescription)")
+            Logger.shared.log("Error: \(error.localizedDescription)")
             throw error
         }
     }
