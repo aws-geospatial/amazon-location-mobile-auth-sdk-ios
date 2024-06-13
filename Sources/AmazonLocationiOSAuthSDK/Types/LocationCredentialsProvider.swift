@@ -3,8 +3,8 @@ public class LocationCredentialsProvider {
     private var apiProvider: AmazonLocationApiCredentialsProvider?
     private var region: String?
     
-    public init(regionType: AmazonLocationRegionType, identityPoolId: String){
-        self.region = regionType.rawValue
+    public init(region: String, identityPoolId: String){
+        self.region = region
         self.cognitoProvider = AmazonLocationCognitoCredentialsProvider(identityPoolId: identityPoolId, region: region)
     }
     

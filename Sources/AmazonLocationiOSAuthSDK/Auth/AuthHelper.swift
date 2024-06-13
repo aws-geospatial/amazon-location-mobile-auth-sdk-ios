@@ -8,20 +8,19 @@ public class AuthHelper {
     }
     
     public func authenticateWithCognitoIdentityPool(identityPoolId: String) async throws -> LocationCredentialsProvider? {
-        let regionType = AmazonLocationRegion.toRegionType(identityPoolId: identityPoolId)
-        locationCredentialsProvider = try? await authenticateWithCognitoIdentityPool(identityPoolId: identityPoolId, regionType: regionType!)
+        let region = AmazonLocationRegion.toRegionString(identityPoolId: identityPoolId)
+        locationCredentialsProvider = try? await authenticateWithCognitoIdentityPoolAndRegion(identityPoolId: identityPoolId, region: region)
         return locationCredentialsProvider
     }
     
     public func authenticateWithCognitoIdentityPool(identityPoolId: String, region: String) async throws -> LocationCredentialsProvider? {
-        let regionType = AmazonLocationRegion.regionTypeByString(regionString: region)
-        locationCredentialsProvider = try? await authenticateWithCognitoIdentityPool(identityPoolId: identityPoolId, regionType: regionType!)
+        locationCredentialsProvider = try? await authenticateWithCognitoIdentityPoolAndRegion(identityPoolId: identityPoolId, region: region)
         return locationCredentialsProvider
     }
     
-    private func authenticateWithCognitoIdentityPool(identityPoolId: String, regionType: AmazonLocationRegionType) async throws -> LocationCredentialsProvider? {
-        let credentialProvider = LocationCredentialsProvider(regionType: regionType, identityPoolId: identityPoolId)
-        credentialProvider.setRegion(region: regionType.rawValue)
+    private func authenticateWithCognitoIdentityPoolAndRegion(identityPoolId: String, region: String) async throws -> LocationCredentialsProvider? {
+        let credentialProvider = LocationCredentialsProvider(region: region, identityPoolId: identityPoolId)
+        credentialProvider.setRegion(region: region)
         try await credentialProvider.getCognitoProvider()?.refreshCognitoCredentialsIfExpired()
         return credentialProvider
     }
