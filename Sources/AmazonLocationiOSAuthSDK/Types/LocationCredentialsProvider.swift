@@ -1,23 +1,23 @@
-import AWSCore
-
 public class LocationCredentialsProvider {
-    private var cognitoProvider: AWSCognitoCredentialsProvider?
-    private var apiProvider: AmazonLocationAPICredentialsProvider?
+    private var cognitoProvider: AmazonLocationCognitoCredentialsProvider?
+    private var apiProvider: AmazonLocationApiCredentialsProvider?
     private var region: String?
     
-    public init(regionType: AWSRegionType, identityPoolId: String){
-        self.cognitoProvider = AWSCognitoCredentialsProvider(regionType: regionType, identityPoolId: identityPoolId)
+    public init(region: String, identityPoolId: String){
+        self.region = region
+        self.cognitoProvider = AmazonLocationCognitoCredentialsProvider(identityPoolId: identityPoolId, region: region)
     }
     
     public init(region: String, apiKey: String){
-        self.apiProvider = AmazonLocationAPICredentialsProvider(apiKey: apiKey, region: region)
+        self.region = region
+        self.apiProvider = AmazonLocationApiCredentialsProvider(apiKey: apiKey, region: region)
     }
     
-    public func getCognitoProvider() -> AWSCognitoCredentialsProvider? {
+    public func getCognitoProvider() -> AmazonLocationCognitoCredentialsProvider? {
         return cognitoProvider
     }
     
-    public func getAPIProvider() -> AmazonLocationAPICredentialsProvider? {
+    public func getApiProvider() -> AmazonLocationApiCredentialsProvider? {
         return apiProvider
     }
     
@@ -26,13 +26,10 @@ public class LocationCredentialsProvider {
     }
     
     public func getAPIKey() -> String? {
-        self.apiProvider?.apiKey = KeyChainHelper.get(key: .AmazonLocationAPIKey)
         return self.apiProvider?.apiKey
     }
     
     public func getRegion() -> String? {
-        let region = KeyChainHelper.get(key: .AWSRegion)
-        self.apiProvider?.region = region
         return region
     }
     
@@ -43,6 +40,7 @@ public class LocationCredentialsProvider {
     
     internal func setRegion(region: String) {
         self.apiProvider?.region = region
+        self.cognitoProvider?.region = region
         self.region = region
         KeyChainHelper.save(value: region, key: .AWSRegion)
     }

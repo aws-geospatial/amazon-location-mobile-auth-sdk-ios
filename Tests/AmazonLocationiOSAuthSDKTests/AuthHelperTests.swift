@@ -1,7 +1,7 @@
 import XCTest
+
 @testable import AmazonLocationiOSAuthSDK
-import AWSCore
-import AWSMobileClientXCF
+import AWSLocation
 
 final class AuthHelperTests: XCTestCase {
     
@@ -21,23 +21,23 @@ final class AuthHelperTests: XCTestCase {
         return [:]
     }
     
-    func testAuthWithIdentityPoolID() throws {
+    func testAuthWithIdentityPoolID() async throws {
         let config = readTestConfig()
         
         let identityPoolID = config["identityPoolID"]!
         let authHelper = AuthHelper()
-        let authProvider = authHelper.authenticateWithCognitoUserPool(identityPoolId: identityPoolID)
-        XCTAssertEqual(authProvider.getIdentityPoolId(), identityPoolID)
+        let authProvider = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolID)
+        XCTAssertEqual(authProvider!.getIdentityPoolId(), identityPoolID)
     }
     
-    func testAuthWithIdentityPoolIDAndRegion() throws {
+    func testAuthWithIdentityPoolIDAndRegion() async throws {
         let config = readTestConfig()
         
         let identityPoolID = config["identityPoolID"]!
         let region = config["region"]!
         let authHelper = AuthHelper()
-        let authProvider = authHelper.authenticateWithCognitoUserPool(identityPoolId: identityPoolID, region: region)
-        XCTAssertEqual(authProvider.getIdentityPoolId(), identityPoolID)
+        let authProvider = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolID, region: region)
+        XCTAssertEqual(authProvider!.getIdentityPoolId(), identityPoolID)
     }
     
     func testAuthWithAPIKey() throws {
@@ -47,41 +47,23 @@ final class AuthHelperTests: XCTestCase {
         let region = config["region"]!
 
         let authHelper = AuthHelper()
-        let authProvider = authHelper.authenticateWithAPIKey(apiKey: apiKey, region: region)
-        XCTAssertNotNil(authProvider.getAPIProvider())
+        let authProvider = authHelper.authenticateWithApiKey(apiKey: apiKey, region: region)
+        XCTAssertNotNil(authProvider.getApiProvider())
     }
     
-    func testAWSEndpoint() {
+    func testAWSSigner() async throws {
         let config = readTestConfig()
         
         let identityPoolID = config["identityPoolID"]!
+        let region = config["region"]!
+        let authHelper = AuthHelper()
+        let credentialsProvider = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolID, region: region)!
+        let cognitoProvider = credentialsProvider!.getCognitoProvider()!
         
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "us-east-1"), .USEast1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "us-east-2"), .USEast2)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "us-west-2"), .USWest2)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "us-west-1"), .USWest1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "eu-west-1"), .EUWest1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "eu-west-2"), .EUWest2)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "eu-west-3"), .EUWest3)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "eu-central-1"), .EUCentral1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "eu-north-1"), .EUNorth1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "ap-east-1"), .APEast1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "ap-southeast-1"), .APSoutheast1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString:  "ap-northeast-1"), .APNortheast1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "ap-northeast-2"), .APNortheast2)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "ap-southeast-2"), .APSoutheast2)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "ap-south-1"), .APSouth1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "sa-east-1"), .SAEast1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "cn-north-1"), .CNNorth1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "cn-northwest-1"), .CNNorthWest1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "ca-central-1"), .CACentral1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "us-gov-west-1"), .USGovWest1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "us-gov-east-1"), .USGovEast1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "me-south-1"), .MESouth1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "af-south-1"), .AFSouth1)
-        XCTAssertEqual(AWSEndpoint.regionTypeByString(regionString: "eu-south-1"), .EUSouth1)
-        
-        XCTAssertEqual(AWSEndpoint.toRegionType(identityPoolId: identityPoolID), .USEast1)
-        XCTAssertEqual(AWSEndpoint.toRegionString(identityPoolId: identityPoolID), "us-east-1")
+        let awsSigner = AWSSignerV4(amazonLocationCognitoCredentialsProvider: cognitoProvider, serviceName: "geo")
+        let url = URL(string: "https://maps.geo.us-east-1.amazonaws.com/maps/v0/maps/TestQuickStart/style-descriptor")!
+
+        let signedURL = awsSigner.signURL(url: url, expires: TimeAmount.hours(1))
+        XCTAssertNotNil(signedURL.absoluteString)
     }
 }
