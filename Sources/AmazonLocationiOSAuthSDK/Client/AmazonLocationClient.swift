@@ -1,6 +1,6 @@
 import Foundation
 import AWSLocation
-import AWSClientRuntime
+import SmithyIdentity
 import SmithyIdentityAPI
 
 public enum HTTPMethod: String {
@@ -44,7 +44,7 @@ public class AmazonLocationClient {
     
     public func initialiseLocationClient() async throws {
         if let credentials = locationProvider.getCognitoProvider()?.getCognitoCredentials() {
-            let resolver:AWSClientRuntime.StaticAWSCredentialIdentityResolver? =  try StaticAWSCredentialIdentityResolver(AWSCredentialIdentity(accessKey: credentials.accessKeyId, secret: credentials.secretKey, expiration: credentials.expiration, sessionToken: credentials.sessionToken))
+            let resolver: StaticAWSCredentialIdentityResolver? =  try StaticAWSCredentialIdentityResolver(AWSCredentialIdentity(accessKey: credentials.accessKeyId, secret: credentials.secretKey, expiration: credentials.expiration, sessionToken: credentials.sessionToken))
             
             let clientConfig = try await LocationClient.LocationClientConfiguration(awsCredentialIdentityResolver: resolver, region: locationProvider.getRegion(), signingRegion: locationProvider.getRegion())
             self.locationClient = LocationClient(config: clientConfig)

@@ -1,13 +1,12 @@
 import XCTest
-
+import Foundation
 @testable import AmazonLocationiOSAuthSDK
-import AWSLocation
 
 final class AuthHelperTests: XCTestCase {
     
     func readTestConfig() -> [String: String] {
         // Implement reading from your chosen config file. This is an example for a plist.
-        guard let plistURL = Bundle.module.url(forResource: "TestConfig", withExtension: "plist"),
+        guard let plistURL =  Foundation.Bundle.module.url(forResource: "TestConfig", withExtension: "plist"),
               let plistData = try? Data(contentsOf: plistURL) else {
             fatalError("Test configuration file not found.")
         }
