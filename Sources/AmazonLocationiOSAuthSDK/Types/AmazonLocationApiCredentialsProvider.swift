@@ -1,7 +1,6 @@
 import Foundation
 
-@objc(AmazonLocationApiCredentialsProvider)
-public class AmazonLocationApiCredentialsProvider: NSObject {
+@objc public class AmazonLocationApiCredentialsProvider: NSObject {
     internal var apiKey: String?
     internal var region: String?
     

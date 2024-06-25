@@ -34,8 +34,7 @@ public struct HTTPHeaders {
     }
 }
 
-@objc(AmazonLocationClient)
-public class AmazonLocationClient: NSObject {
+@objc public class AmazonLocationClient: NSObject {
     public let locationProvider: LocationCredentialsProvider
     public var locationClient: LocationClient?
     

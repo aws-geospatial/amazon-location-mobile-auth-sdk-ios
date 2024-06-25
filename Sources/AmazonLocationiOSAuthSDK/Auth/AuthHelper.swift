@@ -1,7 +1,6 @@
 import Foundation
 
-@objc(AuthHelper)
-public class AuthHelper: NSObject {
+@objc public class AuthHelper: NSObject {
 
     private var locationCredentialsProvider: LocationCredentialsProvider?
     

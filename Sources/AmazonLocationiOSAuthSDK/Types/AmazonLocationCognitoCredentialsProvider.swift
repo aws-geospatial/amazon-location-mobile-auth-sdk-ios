@@ -1,7 +1,6 @@
 import Foundation
 
-@objc(AmazonLocationCognitoCredentialsProvider)
-public class AmazonLocationCognitoCredentialsProvider: NSObject {
+@objc public class AmazonLocationCognitoCredentialsProvider: NSObject {
     internal var identityPoolId: String?
     internal var region: String?
     private var cognitoCredentials: CognitoCredentials?

@@ -1,7 +1,6 @@
 import Foundation
 
-@objc(LocationCredentialsProvider)
-public class LocationCredentialsProvider: NSObject {
+@objc public class LocationCredentialsProvider: NSObject {
     private var cognitoProvider: AmazonLocationCognitoCredentialsProvider?
     private var apiProvider: AmazonLocationApiCredentialsProvider?
     private var region: String?
