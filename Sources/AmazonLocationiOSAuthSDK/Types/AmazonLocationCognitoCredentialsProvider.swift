@@ -1,11 +1,11 @@
 import Foundation
 
-public class AmazonLocationCognitoCredentialsProvider {
+@objc public class AmazonLocationCognitoCredentialsProvider: NSObject {
     internal var identityPoolId: String?
     internal var region: String?
     private var cognitoCredentials: CognitoCredentials?
     
-    public init(identityPoolId: String, region: String?) {
+    @objc public init(identityPoolId: String, region: String?) {
         self.identityPoolId = identityPoolId
         self.region = region
     }
@@ -21,7 +21,7 @@ public class AmazonLocationCognitoCredentialsProvider {
         return self.cognitoCredentials
     }
     
-    public func refreshCognitoCredentialsIfExpired() async throws {
+    @objc public func refreshCognitoCredentialsIfExpired() async throws {
         if let savedCredentials = getCognitoCredentials(), savedCredentials.expiration! > Date() {
             cognitoCredentials = savedCredentials
         } else {
@@ -29,7 +29,7 @@ public class AmazonLocationCognitoCredentialsProvider {
         }
     }
     
-    public func refreshCognitoCredentials() async throws {
+    @objc public func refreshCognitoCredentials() async throws {
         if let identityPoolId = self.identityPoolId, let region = self.region, let cognitoCredentials = try await CognitoCredentialsProvider.generateCognitoCredentials(identityPoolId: identityPoolId, region: region) {
            setCognitoCredentials(cognitoCredentials: cognitoCredentials)
         }
