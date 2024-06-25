@@ -1,35 +1,37 @@
-public class LocationCredentialsProvider {
+import Foundation
+
+@objc public class LocationCredentialsProvider: NSObject {
     private var cognitoProvider: AmazonLocationCognitoCredentialsProvider?
     private var apiProvider: AmazonLocationApiCredentialsProvider?
     private var region: String?
     
-    public init(region: String, identityPoolId: String){
+    @objc public init(region: String, identityPoolId: String){
         self.region = region
         self.cognitoProvider = AmazonLocationCognitoCredentialsProvider(identityPoolId: identityPoolId, region: region)
     }
     
-    public init(region: String, apiKey: String){
+    @objc public init(region: String, apiKey: String){
         self.region = region
         self.apiProvider = AmazonLocationApiCredentialsProvider(apiKey: apiKey, region: region)
     }
     
-    public func getCognitoProvider() -> AmazonLocationCognitoCredentialsProvider? {
+    @objc public func getCognitoProvider() -> AmazonLocationCognitoCredentialsProvider? {
         return cognitoProvider
     }
     
-    public func getApiProvider() -> AmazonLocationApiCredentialsProvider? {
+    @objc public func getApiProvider() -> AmazonLocationApiCredentialsProvider? {
         return apiProvider
     }
     
-    public func getIdentityPoolId() -> String? {
+    @objc public func getIdentityPoolId() -> String? {
         return self.cognitoProvider?.identityPoolId
     }
     
-    public func getAPIKey() -> String? {
+    @objc public func getAPIKey() -> String? {
         return self.apiProvider?.apiKey
     }
     
-    public func getRegion() -> String? {
+    @objc public func getRegion() -> String? {
         return region
     }
     
