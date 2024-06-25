@@ -34,15 +34,16 @@ public struct HTTPHeaders {
     }
 }
 
-public class AmazonLocationClient {
+@objc(AmazonLocationClient)
+public class AmazonLocationClient: NSObject {
     public let locationProvider: LocationCredentialsProvider
     public var locationClient: LocationClient?
     
-    public init(locationCredentialsProvider: LocationCredentialsProvider) {
+    @objc public init(locationCredentialsProvider: LocationCredentialsProvider) {
         self.locationProvider = locationCredentialsProvider
     }
     
-    public func initialiseLocationClient() async throws {
+    @objc public func initialiseLocationClient() async throws {
         if let credentials = locationProvider.getCognitoProvider()?.getCognitoCredentials() {
             let resolver: StaticAWSCredentialIdentityResolver? =  try StaticAWSCredentialIdentityResolver(AWSCredentialIdentity(accessKey: credentials.accessKeyId, secret: credentials.secretKey, expiration: credentials.expiration, sessionToken: credentials.sessionToken))
             
