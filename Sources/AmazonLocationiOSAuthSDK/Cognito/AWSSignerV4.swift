@@ -459,11 +459,6 @@ public struct AWSSignerV4 {
             hash = SHA256.hash(data: [UInt8](string.utf8)).hexDigest()
         case .data(let data):
             hash = SHA256.hash(data: data).hexDigest()
-//        case .byteBuffer(let byteBuffer):
-//            let byteBufferView = byteBuffer.readableBytesView
-//            hash = byteBufferView.withContiguousStorageIfAvailable { bytes in
-//                return SHA256.hash(data: bytes).hexDigest()
-//            }
         case .unsignedPayload:
             return "UNSIGNED-PAYLOAD"
         case .s3chunked:
