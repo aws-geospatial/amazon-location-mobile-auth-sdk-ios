@@ -112,7 +112,7 @@ public struct TimeAmount: Hashable {
 /// Amazon request V4 Signer (This signer is for external aws signing such as Maps cognito signing)
 public struct AWSSignerV4 {
     /// Security credentials for accessing AWS services
-    public let credentials: CognitoCredentials
+    public let credentials: AWSStaticCredentials
     /// Service signing name. In general this is the same as the service name
     public let serviceName: String
     /// AWS region you are working in
@@ -123,7 +123,7 @@ public struct AWSSignerV4 {
     private static let timeStampDateFormatter: DateFormatter = createTimeStampDateFormatter()
 
     /// Initialise the Signer class with AWS credentials
-    public init(credentials: CognitoCredentials, serviceName: String, region: String) {
+    public init(credentials: AWSStaticCredentials, serviceName: String, region: String) {
         self.credentials = credentials
         self.serviceName = serviceName
         self.region = region

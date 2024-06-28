@@ -31,7 +31,7 @@ public class CognitoCredentialsProvider {
         }
     }
     
-    static func generateCognitoCredentials(identityPoolId: String, region: String) async throws  -> CognitoCredentials?
+    static func generateCognitoCredentials(identityPoolId: String, region: String) async throws  -> AWSStaticCredentials?
     {
         let identity = try await getAWSIdentityId(identityPoolId: identityPoolId, region: region)
         
@@ -41,7 +41,7 @@ public class CognitoCredentialsProvider {
             let sessionToken = credentialsOutput.sessionToken, 
             let expiration = credentialsOutput.expiration  {
             
-            let cognitoCredentials = CognitoCredentials(identityPoolId: identityPoolId, accessKeyId: accessKeyId, secretKey: secretKey, sessionToken: sessionToken, expiration: expiration)
+            let cognitoCredentials = AWSStaticCredentials(identityPoolId: identityPoolId, accessKeyId: accessKeyId, secretKey: secretKey, sessionToken: sessionToken, expiration: expiration)
             return cognitoCredentials
         }
         return nil
