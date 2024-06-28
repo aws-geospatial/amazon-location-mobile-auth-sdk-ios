@@ -52,7 +52,7 @@ public struct HTTPHeaders {
             let credentials = try await credentialsProvider.getCredentials()
             
             if let accessKey = credentials.getAccessKey(), let secret = credentials.getSecret() {
-                try await setLocationClient(accessKey: accessKey, secret: secret, expiration: credentials.getExpiration(), sessionToken: credentials.getSecret())
+                try await setLocationClient(accessKey: accessKey, secret: secret, expiration: credentials.getExpiration(), sessionToken: credentials.getSessionToken())
             }
         }
     }
