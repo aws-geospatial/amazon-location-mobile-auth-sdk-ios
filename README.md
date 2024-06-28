@@ -21,19 +21,21 @@ import AWSLocationXCF
 You can create an AuthHelper and use it with the AWS SDK:
 
 ``` swift
-// Create an authentication helper instance using an Amazon Location API Key
-func exampleAPIKeyLogin() {
+// Create an authentication helper using credentials from Cognito
+func exampleCognitoLogin() {
     let authHelper = AuthHelper()
-    let locationCredentialsProvider = authHelper.authenticateWithAPIKey(apiKey: "My-Amazon-Location-API-Key", region: "us-east-1")
+    let locationCredentialsProvider = authHelper.authenticateWithCognitoUserPool(identityPoolId: "My-Cognito-Identity-Pool-Id", region: "us-east-1")
     let locationClient = authHelper.getLocationClient()
 }
 ```
 
 ``` swift
-// Create an authentication helper using credentials from Cognito
+// Create an authentication helper using credentials from any AWS-Swift-SDK Credentials Provider
 func exampleCognitoLogin() {
     let authHelper = AuthHelper()
-    let locationCredentialsProvider = authHelper.authenticateWithCognitoUserPool(identityPoolId: "My-Cognito-Identity-Pool-Id", region: "us-east-1")
+    let credentialProvider = try CredentialsProvider(source: .static(accessKey: "My-AWS-AccessKey", secret: "My-AWS-Secret", sessionToken: "My-AWS-SessionToken", shutdownCallback: {/*Perform post shutdown operation here*/})) 
+    let customCredentialsProvider = AmazonLocationCustomCredentialsProvider(credentialsProvider: credentialProvider)
+    let locationCredentialsProvider = authHelper.authenticateWithCredentialsProvider(credentialsProvider: AmazonLocationCustomCredentialsProvider)
     let locationClient = authHelper.getLocationClient()
 }
 ```

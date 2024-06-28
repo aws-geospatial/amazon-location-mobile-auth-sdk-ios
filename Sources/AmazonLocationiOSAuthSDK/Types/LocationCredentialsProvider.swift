@@ -3,6 +3,7 @@ import Foundation
 @objc public class LocationCredentialsProvider: NSObject {
     private var cognitoProvider: AmazonLocationCognitoCredentialsProvider?
     private var apiProvider: AmazonLocationApiCredentialsProvider?
+    private var customCredentialsProvider: AmazonLocationCustomCredentialsProvider?
     private var region: String?
     
     @objc public init(region: String, identityPoolId: String){
@@ -15,12 +16,20 @@ import Foundation
         self.apiProvider = AmazonLocationApiCredentialsProvider(apiKey: apiKey, region: region)
     }
     
+    @objc public init(credentialsProvider: AmazonLocationCustomCredentialsProvider){
+        self.customCredentialsProvider = credentialsProvider
+    }
+    
     @objc public func getCognitoProvider() -> AmazonLocationCognitoCredentialsProvider? {
         return cognitoProvider
     }
     
     @objc public func getApiProvider() -> AmazonLocationApiCredentialsProvider? {
         return apiProvider
+    }
+    
+    @objc public func getCustomProvider() -> AmazonLocationCustomCredentialsProvider? {
+        return customCredentialsProvider
     }
     
     @objc public func getIdentityPoolId() -> String? {

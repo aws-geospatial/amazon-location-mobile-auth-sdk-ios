@@ -45,9 +45,16 @@ public struct HTTPHeaders {
     @objc public func initialiseLocationClient() async throws {
         if let credentials = locationProvider.getCognitoProvider()?.getCognitoCredentials() {
             let resolver: StaticAWSCredentialIdentityResolver? =  try StaticAWSCredentialIdentityResolver(AWSCredentialIdentity(accessKey: credentials.accessKeyId, secret: credentials.secretKey, expiration: credentials.expiration, sessionToken: credentials.sessionToken))
-            
             let clientConfig = try await LocationClient.LocationClientConfiguration(awsCredentialIdentityResolver: resolver, region: locationProvider.getRegion(), signingRegion: locationProvider.getRegion())
             self.locationClient = LocationClient(config: clientConfig)
+        }
+        else if let credentialsProvider = locationProvider.getCustomProvider()?.credentialsProvider {
+            let credentials = try await credentialsProvider.getCredentials()
+            if let accessKey = credentials.getAccessKey(), let secret = credentials.getSecret() {
+                let resolver: StaticAWSCredentialIdentityResolver? =  try StaticAWSCredentialIdentityResolver(AWSCredentialIdentity(accessKey: accessKey, secret: secret, expiration: credentials.getExpiration(), sessionToken: credentials.getSessionToken()))
+                let clientConfig = try await LocationClient.LocationClientConfiguration(awsCredentialIdentityResolver: resolver, region: locationProvider.getRegion(), signingRegion: locationProvider.getRegion())
+                self.locationClient = LocationClient(config: clientConfig)
+            }
         }
     }
     
