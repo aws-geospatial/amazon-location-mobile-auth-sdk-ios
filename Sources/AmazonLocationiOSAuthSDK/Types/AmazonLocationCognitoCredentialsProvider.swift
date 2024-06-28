@@ -10,7 +10,7 @@ import Foundation
         self.region = region
     }
     
-    internal func getCognitoCredentials() -> CognitoCredentials? {
+    public func getCognitoCredentials() -> CognitoCredentials? {
         if self.cognitoCredentials != nil && self.cognitoCredentials!.expiration! > Date() {
             return self.cognitoCredentials
         }
