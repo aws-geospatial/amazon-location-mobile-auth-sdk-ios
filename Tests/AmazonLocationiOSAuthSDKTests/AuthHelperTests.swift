@@ -64,7 +64,7 @@ final class AuthHelperTests: XCTestCase {
             let credentialProvider = try CredentialsProvider(source: .static(accessKey: accessKey, secret: secret, sessionToken: sessionToken, shutdownCallback: {}))
             let customCredentialsProvider = AmazonLocationCustomCredentialsProvider(credentialsProvider: credentialProvider)
             let authProvider = try? await authHelper.authenticateWithCredentialsProvider(credentialsProvider: customCredentialsProvider)
-            let customAccessKey = try await authProvider!.getCustomProvider()?.credentialsProvider?.getCredentials().getAccessKey()
+            let customAccessKey = try await authProvider!.getCustomCredentialsProvider()?.credentialsProvider?.getCredentials().getAccessKey()
             XCTAssertEqual(customAccessKey, accessKey)
         }
     }

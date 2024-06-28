@@ -48,7 +48,7 @@ public struct HTTPHeaders {
             let clientConfig = try await LocationClient.LocationClientConfiguration(awsCredentialIdentityResolver: resolver, region: locationProvider.getRegion(), signingRegion: locationProvider.getRegion())
             self.locationClient = LocationClient(config: clientConfig)
         }
-        else if let credentialsProvider = locationProvider.getCustomProvider()?.credentialsProvider {
+        else if let credentialsProvider = locationProvider.getCustomCredentialsProvider()?.credentialsProvider {
             let credentials = try await credentialsProvider.getCredentials()
             if let accessKey = credentials.getAccessKey(), let secret = credentials.getSecret() {
                 let resolver: StaticAWSCredentialIdentityResolver? =  try StaticAWSCredentialIdentityResolver(AWSCredentialIdentity(accessKey: accessKey, secret: secret, expiration: credentials.getExpiration(), sessionToken: credentials.getSessionToken()))

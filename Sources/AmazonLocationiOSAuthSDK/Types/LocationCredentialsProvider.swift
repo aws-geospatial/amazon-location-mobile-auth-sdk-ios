@@ -24,12 +24,23 @@ import Foundation
         return cognitoProvider
     }
     
+    
     @objc public func getApiProvider() -> AmazonLocationApiCredentialsProvider? {
         return apiProvider
     }
     
-    @objc public func getCustomProvider() -> AmazonLocationCustomCredentialsProvider? {
+    @objc public func getCustomCredentialsProvider() -> AmazonLocationCustomCredentialsProvider? {
         return customCredentialsProvider
+    }
+    
+    @objc public func getCredentialsProvider() -> LocationCredentialsProtocol? {
+        if let cognitoProvider = self.cognitoProvider {
+            return cognitoProvider
+        } else if let customCredentialsProvider = self.customCredentialsProvider {
+            return customCredentialsProvider
+        } else {
+            return nil
+        }
     }
     
     @objc public func getIdentityPoolId() -> String? {

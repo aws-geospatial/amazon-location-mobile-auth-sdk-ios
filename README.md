@@ -1,6 +1,6 @@
 # Amazon Location Service Mobile Authentication SDK for iOS
 
-These utilities help you authenticate when when making [Amazon Location Service](https://aws.amazon.com/location/) API calls from their iOS applications. This specifically helps when using [Amazon Cognito](https://docs.aws.amazon.com/location/latest/developerguide/authenticating-using-cognito.html) or [API keys](https://docs.aws.amazon.com/location/latest/developerguide/using-apikeys.html) as the authentication method.
+These utilities help you authenticate when when making [Amazon Location Service](https://aws.amazon.com/location/) API calls from their iOS applications. This specifically helps when using [Amazon Cognito](https://docs.aws.amazon.com/location/latest/developerguide/authenticating-using-cognito.html) as the authentication method.
 
 ## Installation
 
