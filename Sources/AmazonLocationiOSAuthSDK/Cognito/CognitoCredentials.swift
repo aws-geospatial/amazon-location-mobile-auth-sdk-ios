@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AWSStaticCredentials: Codable {
+public struct CognitoCredentials: Codable {
     public let identityPoolId: String
     public let accessKeyId: String
     public let secretKey: String
@@ -16,7 +16,7 @@ public struct AWSStaticCredentials: Codable {
     }
     
     
-    public static func encodeCognitoCredentials(credential: AWSStaticCredentials) -> String? {
+    public static func encodeCognitoCredentials(credential: CognitoCredentials) -> String? {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         do {
@@ -29,7 +29,7 @@ public struct AWSStaticCredentials: Codable {
         }
     }
 
-    public static func decodeCognitoCredentials(jsonString: String) -> AWSStaticCredentials? {
+    public static func decodeCognitoCredentials(jsonString: String) -> CognitoCredentials? {
         guard let jsonData = jsonString.data(using: .utf8) else {
             Logger.shared.log("Invalid JSON string")
             return nil
@@ -38,7 +38,7 @@ public struct AWSStaticCredentials: Codable {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         do {
-            let credential = try decoder.decode(AWSStaticCredentials.self, from: jsonData)
+            let credential = try decoder.decode(CognitoCredentials.self, from: jsonData)
             return credential
         } catch {
             Logger.shared.log("Error decoding JSON to CognitoCredential: \(error)")

@@ -3,18 +3,18 @@ import Foundation
 @objc public class AmazonLocationCognitoCredentialsProvider: NSObject, LocationCredentialsProtocol {
     internal var identityPoolId: String?
     internal var region: String?
-    private var cognitoCredentials: AWSStaticCredentials?
+    private var cognitoCredentials: CognitoCredentials?
     
     @objc public init(identityPoolId: String, region: String?) {
         self.identityPoolId = identityPoolId
         self.region = region
     }
     
-    internal func getCognitoCredentials() -> AWSStaticCredentials? {
+    internal func getCognitoCredentials() -> CognitoCredentials? {
         if self.cognitoCredentials != nil && self.cognitoCredentials!.expiration! > Date() {
             return self.cognitoCredentials
         }
-        else if let cognitoCredentialsString = KeyChainHelper.get(key: .CognitoCredentials), let cognitoCredentials = AWSStaticCredentials.decodeCognitoCredentials(jsonString: cognitoCredentialsString) {
+        else if let cognitoCredentialsString = KeyChainHelper.get(key: .CognitoCredentials), let cognitoCredentials = CognitoCredentials.decodeCognitoCredentials(jsonString: cognitoCredentialsString) {
             self.cognitoCredentials = cognitoCredentials
             return self.cognitoCredentials
         }
@@ -35,8 +35,8 @@ import Foundation
         }
     }
     
-    private func setCognitoCredentials(cognitoCredentials: AWSStaticCredentials) {
+    private func setCognitoCredentials(cognitoCredentials: CognitoCredentials) {
         self.cognitoCredentials = cognitoCredentials
-        KeyChainHelper.save(value: AWSStaticCredentials.encodeCognitoCredentials(credential: cognitoCredentials)!, key: .CognitoCredentials)
+        KeyChainHelper.save(value: CognitoCredentials.encodeCognitoCredentials(credential: cognitoCredentials)!, key: .CognitoCredentials)
     }
 }
