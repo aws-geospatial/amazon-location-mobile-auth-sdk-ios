@@ -1,4 +1,5 @@
 import Foundation
+import AwsCommonRuntimeKit
 
 @objc public class AuthHelper: NSObject {
 
@@ -30,6 +31,12 @@ import Foundation
         credentialProvider.setAPIKey(apiKey: apiKey)
         credentialProvider.setRegion(region: region)
         locationCredentialsProvider =  credentialProvider
+        return credentialProvider
+    }
+    
+    @objc public func authenticateWithCredentialsProvider(credentialsProvider: AmazonLocationCustomCredentialsProvider, region: String) async throws -> LocationCredentialsProvider? {
+        let credentialProvider = LocationCredentialsProvider(credentialsProvider: credentialsProvider)
+        credentialProvider.setRegion(region: region)
         return credentialProvider
     }
     
