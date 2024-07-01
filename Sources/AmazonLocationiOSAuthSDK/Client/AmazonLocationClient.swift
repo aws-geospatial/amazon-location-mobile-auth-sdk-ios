@@ -44,11 +44,26 @@ public struct HTTPHeaders {
     
     @objc public func initialiseLocationClient() async throws {
         if let credentials = locationProvider.getCognitoProvider()?.getCognitoCredentials() {
-            let resolver: StaticAWSCredentialIdentityResolver? =  try StaticAWSCredentialIdentityResolver(AWSCredentialIdentity(accessKey: credentials.accessKeyId, secret: credentials.secretKey, expiration: credentials.expiration, sessionToken: credentials.sessionToken))
             
-            let clientConfig = try await LocationClient.LocationClientConfiguration(awsCredentialIdentityResolver: resolver, region: locationProvider.getRegion(), signingRegion: locationProvider.getRegion())
-            self.locationClient = LocationClient(config: clientConfig)
+            try await setLocationClient(accessKey: credentials.accessKeyId, secret: credentials.secretKey, expiration: credentials.expiration, sessionToken: credentials.sessionToken)
         }
+        else if let credentialsProvider = locationProvider.getCustomCredentialsProvider()?.credentialsProvider {
+            
+            let credentials = try await credentialsProvider.getCredentials()
+            
+            if let accessKey = credentials.getAccessKey(), let secret = credentials.getSecret() {
+                try await setLocationClient(accessKey: accessKey, secret: secret, expiration: credentials.getExpiration(), sessionToken: credentials.getSessionToken())
+            }
+        }
+    }
+    
+    private func setLocationClient(accessKey: String, secret: String, expiration: Date?, sessionToken: String?) async throws {
+        
+        let resolver: StaticAWSCredentialIdentityResolver? =  try StaticAWSCredentialIdentityResolver(AWSCredentialIdentity(accessKey: accessKey, secret: secret, expiration: expiration, sessionToken: sessionToken))
+        
+        let clientConfig = try await LocationClient.LocationClientConfiguration(awsCredentialIdentityResolver: resolver, region: locationProvider.getRegion(), signingRegion: locationProvider.getRegion())
+        
+        self.locationClient = LocationClient(config: clientConfig)
     }
     
     public func sendAPIRequest<T: Decodable, E: AmazonBaseErrorResponse & Error>(
