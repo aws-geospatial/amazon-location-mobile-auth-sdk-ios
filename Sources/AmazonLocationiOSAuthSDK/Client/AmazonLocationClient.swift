@@ -47,7 +47,7 @@ public struct HTTPHeaders {
             
             try await setLocationClient(accessKey: credentials.accessKeyId, secret: credentials.secretKey, expiration: credentials.expiration, sessionToken: credentials.sessionToken)
         }
-        else if let credentialsProvider = locationProvider.getCustomCredentialsProvider()?.credentialsProvider {
+        else if let credentialsProvider = locationProvider.getCustomCredentialsProvider() {
             
             let credentials = try await credentialsProvider.getCredentials()
             

@@ -34,7 +34,7 @@ import AwsCommonRuntimeKit
         return credentialProvider
     }
     
-    @objc public func authenticateWithCredentialsProvider(credentialsProvider: AmazonLocationCustomCredentialsProvider, region: String) async throws -> LocationCredentialsProvider? {
+    public func authenticateWithCredentialsProvider(credentialsProvider: CredentialsProvider, region: String) async throws -> LocationCredentialsProvider? {
         let credentialProvider = LocationCredentialsProvider(credentialsProvider: credentialsProvider)
         credentialProvider.setRegion(region: region)
         return credentialProvider

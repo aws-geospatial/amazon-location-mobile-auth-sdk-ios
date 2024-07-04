@@ -24,13 +24,13 @@ You can create an AuthHelper and use it with the AWS SDK:
 // Create an authentication helper using credentials from Cognito
 func exampleCognitoLogin() {
     let authHelper = AuthHelper()
-    let locationCredentialsProvider = authHelper.authenticateWithCognitoUserPool(identityPoolId: "My-Cognito-Identity-Pool-Id", region: "us-east-1")
+    let locationCredentialsProvider = authHelper.authenticateWithCognitoIdentityPool(identityPoolId: "My-Cognito-Identity-Pool-Id", region: "us-east-1")
     let locationClient = authHelper.getLocationClient()
 }
 ```
 
 ``` swift
-// Create an authentication helper using credentials from any AWS-Swift-SDK Credentials Provider
+// Create an authentication helper using credentials from any AWS-Swift-SDK [Credentials Provider](https://github.com/awslabs/aws-crt-swift/blob/main/Source/AwsCommonRuntimeKit/auth/credentials/CredentialsProvider.swift)
 func exampleCognitoLogin() {
     let authHelper = AuthHelper()
     let credentialProvider = try CredentialsProvider(source: .static(accessKey: "My-AWS-AccessKey", secret: "My-AWS-Secret", sessionToken: "My-AWS-SessionToken", shutdownCallback: {/*Perform post shutdown operation here*/})) 
