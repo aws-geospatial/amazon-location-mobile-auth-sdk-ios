@@ -34,8 +34,7 @@ func exampleCognitoLogin() {
 func exampleCognitoLogin() {
     let authHelper = AuthHelper()
     let credentialProvider = try CredentialsProvider(source: .static(accessKey: "My-AWS-AccessKey", secret: "My-AWS-Secret", sessionToken: "My-AWS-SessionToken", shutdownCallback: {/*Perform post shutdown operation here*/})) 
-    let customCredentialsProvider = AmazonLocationCustomCredentialsProvider(credentialsProvider: credentialProvider)
-    let locationCredentialsProvider = authHelper.authenticateWithCredentialsProvider(credentialsProvider: AmazonLocationCustomCredentialsProvider)
+    let locationCredentialsProvider = authHelper.authenticateWithCredentialsProvider(credentialsProvider: credentialProvider)
     let locationClient = authHelper.getLocationClient()
 }
 ```
