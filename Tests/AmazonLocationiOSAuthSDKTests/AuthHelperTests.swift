@@ -1,6 +1,7 @@
 import XCTest
 import Foundation
 @testable import AmazonLocationiOSAuthSDK
+import AwsCommonRuntimeKit
 
 final class AuthHelperTests: XCTestCase {
     
@@ -48,6 +49,23 @@ final class AuthHelperTests: XCTestCase {
         let authHelper = AuthHelper()
         let authProvider = authHelper.authenticateWithApiKey(apiKey: apiKey, region: region)
         XCTAssertNotNil(authProvider.getApiProvider())
+    }
+    
+    func testAuthWithCustomeCredentials() async throws {
+        let config = readTestConfig()
+        
+        let identityPoolID = config["identityPoolID"]!
+        let region = config["region"]!
+        let authHelper = AuthHelper()
+        let authCognitoProvider = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolID, region: region)
+        let credentials = authCognitoProvider?.getCognitoProvider()?.getCognitoCredentials()
+        
+        if let accessKey = credentials?.accessKeyId, let secret = credentials?.secretKey, let sessionToken = credentials?.sessionToken {
+            let credentialProvider = try CredentialsProvider(source: .static(accessKey: accessKey, secret: secret, sessionToken: sessionToken, shutdownCallback: {}))
+            let authProvider = try? await authHelper.authenticateWithCredentialsProvider(credentialsProvider: credentialProvider, region: region)
+            let customAccessKey = try await authProvider!.getCustomCredentialsProvider()?.getCredentials().getAccessKey()
+            XCTAssertEqual(customAccessKey, accessKey)
+        }
     }
     
     func testAWSSigner() async throws {

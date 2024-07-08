@@ -112,7 +112,7 @@ public struct TimeAmount: Hashable {
 /// Amazon request V4 Signer (This signer is for external aws signing such as Maps cognito signing)
 public struct AWSSignerV4 {
     /// Security credentials for accessing AWS services
-    public let credentials: CognitoCredentials
+    public let credentials: AmazonStaticCredentials
     /// Service signing name. In general this is the same as the service name
     public let serviceName: String
     /// AWS region you are working in
@@ -123,14 +123,15 @@ public struct AWSSignerV4 {
     private static let timeStampDateFormatter: DateFormatter = createTimeStampDateFormatter()
 
     /// Initialise the Signer class with AWS credentials
-    public init(credentials: CognitoCredentials, serviceName: String, region: String) {
+    public init(credentials: AmazonStaticCredentials, serviceName: String, region: String) {
         self.credentials = credentials
         self.serviceName = serviceName
         self.region = region
     }
     
     public init(amazonLocationCognitoCredentialsProvider: AmazonLocationCognitoCredentialsProvider, serviceName: String) {
-        self.credentials = amazonLocationCognitoCredentialsProvider.getCognitoCredentials()!
+        let cognitoCredentials = amazonLocationCognitoCredentialsProvider.getCognitoCredentials()!
+        self.credentials = AmazonStaticCredentials(accessKeyId: cognitoCredentials.accessKeyId, secretKey: cognitoCredentials.secretKey, sessionToken: cognitoCredentials.sessionToken, expiration: cognitoCredentials.expiration)
         self.serviceName = serviceName
         self.region = amazonLocationCognitoCredentialsProvider.region!
     }
@@ -459,11 +460,6 @@ public struct AWSSignerV4 {
             hash = SHA256.hash(data: [UInt8](string.utf8)).hexDigest()
         case .data(let data):
             hash = SHA256.hash(data: data).hexDigest()
-//        case .byteBuffer(let byteBuffer):
-//            let byteBufferView = byteBuffer.readableBytesView
-//            hash = byteBufferView.withContiguousStorageIfAvailable { bytes in
-//                return SHA256.hash(data: bytes).hexDigest()
-//            }
         case .unsignedPayload:
             return "UNSIGNED-PAYLOAD"
         case .s3chunked:

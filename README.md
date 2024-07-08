@@ -1,6 +1,6 @@
 # Amazon Location Service Mobile Authentication SDK for iOS
 
-These utilities help you authenticate when when making [Amazon Location Service](https://aws.amazon.com/location/) API calls from their iOS applications. This specifically helps when using [Amazon Cognito](https://docs.aws.amazon.com/location/latest/developerguide/authenticating-using-cognito.html) or [API keys](https://docs.aws.amazon.com/location/latest/developerguide/using-apikeys.html) as the authentication method.
+These utilities help you authenticate when when making [Amazon Location Service](https://aws.amazon.com/location/) API calls from their iOS applications. This specifically helps when using [Amazon Cognito](https://docs.aws.amazon.com/location/latest/developerguide/authenticating-using-cognito.html) as the authentication method.
 
 ## Installation
 
@@ -21,19 +21,20 @@ import AWSLocationXCF
 You can create an AuthHelper and use it with the AWS SDK:
 
 ``` swift
-// Create an authentication helper instance using an Amazon Location API Key
-func exampleAPIKeyLogin() {
+// Create an authentication helper using credentials from Cognito
+func exampleCognitoLogin() {
     let authHelper = AuthHelper()
-    let locationCredentialsProvider = authHelper.authenticateWithAPIKey(apiKey: "My-Amazon-Location-API-Key", region: "us-east-1")
+    let locationCredentialsProvider = authHelper.authenticateWithCognitoIdentityPool(identityPoolId: "My-Cognito-Identity-Pool-Id", region: "us-east-1")
     let locationClient = authHelper.getLocationClient()
 }
 ```
 
 ``` swift
-// Create an authentication helper using credentials from Cognito
+// Create an authentication helper using credentials from any AWS-Swift-SDK [Credentials Provider](https://github.com/awslabs/aws-crt-swift/blob/main/Source/AwsCommonRuntimeKit/auth/credentials/CredentialsProvider.swift)
 func exampleCognitoLogin() {
     let authHelper = AuthHelper()
-    let locationCredentialsProvider = authHelper.authenticateWithCognitoUserPool(identityPoolId: "My-Cognito-Identity-Pool-Id", region: "us-east-1")
+    let credentialProvider = try CredentialsProvider(source: .static(accessKey: "My-AWS-AccessKey", secret: "My-AWS-Secret", sessionToken: "My-AWS-SessionToken", shutdownCallback: {/*Perform post shutdown operation here*/})) 
+    let locationCredentialsProvider = authHelper.authenticateWithCredentialsProvider(credentialsProvider: credentialProvider)
     let locationClient = authHelper.getLocationClient()
 }
 ```

@@ -1,8 +1,14 @@
 import Foundation
+import AwsCommonRuntimeKit
+
+extension CredentialsProvider: LocationCredentialsProtocol {
+    
+}
 
 @objc public class LocationCredentialsProvider: NSObject {
     private var cognitoProvider: AmazonLocationCognitoCredentialsProvider?
     private var apiProvider: AmazonLocationApiCredentialsProvider?
+    private var customCredentialsProvider: CredentialsProvider?
     private var region: String?
     
     @objc public init(region: String, identityPoolId: String){
@@ -15,12 +21,31 @@ import Foundation
         self.apiProvider = AmazonLocationApiCredentialsProvider(apiKey: apiKey, region: region)
     }
     
+    public init(credentialsProvider: CredentialsProvider){
+        self.customCredentialsProvider = credentialsProvider
+    }
+    
     @objc public func getCognitoProvider() -> AmazonLocationCognitoCredentialsProvider? {
         return cognitoProvider
     }
     
+    
     @objc public func getApiProvider() -> AmazonLocationApiCredentialsProvider? {
         return apiProvider
+    }
+    
+    public func getCustomCredentialsProvider() -> CredentialsProvider? {
+        return customCredentialsProvider
+    }
+    
+    @objc public func getCredentialsProvider() -> LocationCredentialsProtocol? {
+        if let cognitoProvider = self.cognitoProvider {
+            return cognitoProvider
+        } else if let customCredentialsProvider = self.customCredentialsProvider {
+            return customCredentialsProvider
+        } else {
+            return nil
+        }
     }
     
     @objc public func getIdentityPoolId() -> String? {
