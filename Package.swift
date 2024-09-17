@@ -15,7 +15,7 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         .package(url: "https://github.com/evgenyneu/keychain-swift.git", from: "20.0.0"),
-        .package(url: "https://github.com/awslabs/aws-sdk-swift", branch: "0.46.0")
+        .package(url: "https://github.com/awslabs/aws-sdk-swift", from: "0.76.1")
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
