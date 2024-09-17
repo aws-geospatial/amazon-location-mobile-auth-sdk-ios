@@ -1,7 +1,7 @@
 import Foundation
 import AWSLocation
 import SmithyIdentity
-import SmithyIdentityAPI
+import SmithyHTTPAuthAPI
 
 public enum HTTPMethod: String {
     case GET
@@ -43,9 +43,11 @@ public struct HTTPHeaders {
     }
     
     @objc public func initialiseLocationClient() async throws {
-        if let credentials = locationProvider.getCognitoProvider()?.getCognitoCredentials() {
-            
-            try await setLocationClient(accessKey: credentials.accessKeyId, secret: credentials.secretKey, expiration: credentials.expiration, sessionToken: credentials.sessionToken)
+        if let cognitoProvider = locationProvider.getCognitoProvider() {
+            try await cognitoProvider.refreshCognitoCredentialsIfExpired()
+            if let credentials = cognitoProvider.getCognitoCredentials() {
+                try await setLocationClient(accessKey: credentials.accessKeyId, secret: credentials.secretKey, expiration: credentials.expiration, sessionToken: credentials.sessionToken)
+            }
         }
         else if let credentialsProvider = locationProvider.getCustomCredentialsProvider() {
             
@@ -55,13 +57,26 @@ public struct HTTPHeaders {
                 try await setLocationClient(accessKey: accessKey, secret: secret, expiration: credentials.getExpiration(), sessionToken: credentials.getSessionToken())
             }
         }
+        else if let apiProvider = locationProvider.getApiProvider(),
+                let apiKey = apiProvider.apiKey {
+            try await setLocationClient(apiKey: apiKey)
+        }
     }
     
-    private func setLocationClient(accessKey: String, secret: String, expiration: Date?, sessionToken: String?) async throws {
-        
-        let resolver: StaticAWSCredentialIdentityResolver? =  try StaticAWSCredentialIdentityResolver(AWSCredentialIdentity(accessKey: accessKey, secret: secret, expiration: expiration, sessionToken: sessionToken))
-        
+    private func setLocationClient(accessKey: String, secret: String, expiration: Date? = nil, sessionToken: String? = nil) async throws {
+        let credentialsIdentity = AWSCredentialIdentity(accessKey: accessKey, secret: secret, expiration: expiration, sessionToken: sessionToken)
+        let resolver: StaticAWSCredentialIdentityResolver? =  try StaticAWSCredentialIdentityResolver(credentialsIdentity)
         let clientConfig = try await LocationClient.LocationClientConfiguration(awsCredentialIdentityResolver: resolver, region: locationProvider.getRegion(), signingRegion: locationProvider.getRegion())
+        self.locationClient = LocationClient(config: clientConfig)
+    }
+    
+    private func setLocationClient(apiKey: String) async throws {
+        let resolver: AuthSchemeResolver = ApiKeyAuthSchemeResolver()
+        let signer = ApiKeySigner()
+        let authScheme: AuthScheme = ApiKeyAuthScheme(signer: signer)
+        let authSchemes: [AuthScheme] = [authScheme]
+        let region = locationProvider.getRegion()
+        let clientConfig = try await LocationClient.LocationClientConfiguration(region: region, authSchemes: authSchemes, authSchemeResolver: resolver)
         
         self.locationClient = LocationClient(config: clientConfig)
     }
