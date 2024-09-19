@@ -2,6 +2,8 @@ import XCTest
 import Foundation
 @testable import AmazonLocationiOSAuthSDK
 import AwsCommonRuntimeKit
+import CoreLocation
+import AWSLocation
 
 final class AuthHelperTests: XCTestCase {
     
@@ -25,9 +27,25 @@ final class AuthHelperTests: XCTestCase {
         let config = readTestConfig()
         
         let identityPoolID = config["identityPoolID"]!
+        let searchPlaceIndex = config["placeIndex"]!
+        
         let authHelper = AuthHelper()
         let authProvider = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolID)
         XCTAssertEqual(authProvider!.getIdentityPoolId(), identityPoolID)
+        XCTAssertNotNil(authProvider?.getCognitoProvider())
+        
+        let biasPosition = CLLocationCoordinate2D(latitude: 47.654502614244194, longitude: -122.35862564621954)
+        let locationClient = authHelper.getLocationClient()?.locationClient
+        let searchPlaceIndexForSuggestionsInput = SearchPlaceIndexForSuggestionsInput(biasPosition: [biasPosition.longitude, biasPosition.latitude], indexName: searchPlaceIndex, maxResults: 15, text: "Schools")
+        let response = try await locationClient?.searchPlaceIndexForSuggestions(input: searchPlaceIndexForSuggestionsInput)
+        
+        var searchResults: [String] = []
+        if let results = response?.results {
+            for item in results {
+                searchResults.append((item.text)!)
+            }
+        }
+        XCTAssertNotEqual(searchResults.count, 0, "Search has results")
     }
     
     func testAuthWithIdentityPoolIDAndRegion() async throws {
@@ -40,15 +58,35 @@ final class AuthHelperTests: XCTestCase {
         XCTAssertEqual(authProvider!.getIdentityPoolId(), identityPoolID)
     }
     
-    func testAuthWithAPIKey() throws {
-        let config = readTestConfig()
-        
-        let apiKey = config["apiKey"]!
-        let region = config["region"]!
-
-        let authHelper = AuthHelper()
-        let authProvider = authHelper.authenticateWithApiKey(apiKey: apiKey, region: region)
-        XCTAssertNotNil(authProvider.getApiProvider())
+    func testAuthWithAPIKey() async throws {
+        do {
+            let config = readTestConfig()
+            let apiKey = config["apiKey"]!
+            let region = config["region"]!
+            let searchPlaceIndex = config["placeIndex"]!
+            
+            let authHelper = AuthHelper()
+            let authProvider = try await authHelper.authenticateWithApiKey(apiKey: apiKey, region: region)
+            
+            XCTAssertNotNil(authProvider?.getApiProvider())
+            
+            let biasPosition = CLLocationCoordinate2D(latitude: 47.654502614244194, longitude: -122.35862564621954)
+            let locationClient = authHelper.getLocationClient()?.locationClient
+            let searchPlaceIndexForSuggestionsInput = SearchPlaceIndexForSuggestionsInput(biasPosition: [biasPosition.longitude, biasPosition.latitude], indexName: searchPlaceIndex, key: apiKey, maxResults: 15, text: "Schools")
+            let response = try await locationClient?.searchPlaceIndexForSuggestions(input: searchPlaceIndexForSuggestionsInput)
+            
+            var searchResults: [String] = []
+            if let results = response?.results {
+                for item in results {
+                    searchResults.append((item.text)!)
+                }
+            }
+            XCTAssertNotEqual(searchResults.count, 0, "Search has results")
+        }
+        catch {
+            XCTFail(error.localizedDescription)
+            throw error
+        }
     }
     
     func testAuthWithCustomeCredentials() async throws {
@@ -56,8 +94,10 @@ final class AuthHelperTests: XCTestCase {
         
         let identityPoolID = config["identityPoolID"]!
         let region = config["region"]!
+        let searchPlaceIndex = config["placeIndex"]!
+        
         let authHelper = AuthHelper()
-        let authCognitoProvider = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolID, region: region)
+        let authCognitoProvider = try? await authHelper.authenticateWithCognitoIdentityPool(identityPoolId: identityPoolID)
         let credentials = authCognitoProvider?.getCognitoProvider()?.getCognitoCredentials()
         
         if let accessKey = credentials?.accessKeyId, let secret = credentials?.secretKey, let sessionToken = credentials?.sessionToken {
@@ -65,6 +105,19 @@ final class AuthHelperTests: XCTestCase {
             let authProvider = try? await authHelper.authenticateWithCredentialsProvider(credentialsProvider: credentialProvider, region: region)
             let customAccessKey = try await authProvider!.getCustomCredentialsProvider()?.getCredentials().getAccessKey()
             XCTAssertEqual(customAccessKey, accessKey)
+            
+            let biasPosition = CLLocationCoordinate2D(latitude: 47.654502614244194, longitude: -122.35862564621954)
+            let locationClient = authHelper.getLocationClient()?.locationClient
+            let searchPlaceIndexForSuggestionsInput = SearchPlaceIndexForSuggestionsInput(biasPosition: [biasPosition.longitude, biasPosition.latitude], indexName: searchPlaceIndex, maxResults: 15, text: "Schools")
+            let response = try await locationClient?.searchPlaceIndexForSuggestions(input: searchPlaceIndexForSuggestionsInput)
+            
+            var searchResults: [String] = []
+            if let results = response?.results {
+                for item in results {
+                    searchResults.append((item.text)!)
+                }
+            }
+            XCTAssertNotEqual(searchResults.count, 0, "Search has results")
         }
     }
     
