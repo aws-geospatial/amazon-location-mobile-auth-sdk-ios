@@ -8,6 +8,10 @@ public struct ApiKeyAuthScheme: AuthScheme {
     public var schemeID: String = apiKeyAuthSchemeID
     public var signer: any SmithyHTTPAuthAPI.Signer
     
+    public init(signer: any SmithyHTTPAuthAPI.Signer) {
+        self.signer = signer
+    }
+    
     public func customizeSigningProperties(
         signingProperties: Smithy.Attributes,
         context: Smithy.Context
@@ -36,6 +40,8 @@ public class ApiKeyAuthSchemeResolverParameters: AuthSchemeResolverParameters {
 }
 
 public class ApiKeyAuthSchemeResolver: AuthSchemeResolver {
+    public init() {}
+    
     public func resolveAuthScheme(params: AuthSchemeResolverParameters) throws -> [AuthOption] {
         var validAuthOptions = Array<AuthOption>()
         validAuthOptions.append(AuthOption(schemeID: apiKeyAuthSchemeID))
