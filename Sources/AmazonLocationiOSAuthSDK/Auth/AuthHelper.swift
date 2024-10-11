@@ -47,17 +47,13 @@ import AwsCommonRuntimeKit
         locationCredentialsProvider = credentialProvider
         if let credentialsProvider = locationCredentialsProvider {
             amazonLocationClient = AmazonLocationClient(locationCredentialsProvider: credentialsProvider)
+            try await amazonLocationClient?.initialiseLocationClient()
         }
         return credentialProvider
     }
-    
-    @objc public func getAmazonLocationClient() -> AmazonLocationClient?
+
+    @objc public func getLocationClient() -> AmazonLocationClient?
     {
         return amazonLocationClient
-    }
-    
-    public func getLocationClient() -> LocationClient?
-    {
-        return amazonLocationClient?.locationClient
     }
 }
