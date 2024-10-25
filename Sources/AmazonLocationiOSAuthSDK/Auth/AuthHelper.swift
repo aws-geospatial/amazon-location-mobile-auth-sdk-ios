@@ -1,14 +1,23 @@
 import Foundation
+import AWSGeoMaps
+import AWSGeoPlaces
+import AWSGeoRoutes
 import AWSLocation
 import AwsCommonRuntimeKit
 import SmithyIdentity
 import SmithyHTTPAuthAPI
 
 @objc public class AuthHelper: NSObject {
+    private var geoMapsClientConfig: GeoMapsClient.GeoMapsClientConfiguration
+    private var geoPlacesClientConfig: GeoPlacesClient.GeoPlacesClientConfiguration
+    private var geoRoutesClientConfig: GeoRoutesClient.GeoRoutesClientConfiguration
     private var locationClientConfig: LocationClient.LocationClientConfiguration
     private var cognitoCredentialsProvider: AmazonLocationCognitoCredentialsProvider?
 
-    public init(locationClientConfig: LocationClient.LocationClientConfiguration) {
+    public init(geoMapsClientConfig: GeoMapsClient.GeoMapsClientConfiguration, geoPlacesClientConfig: GeoPlacesClient.GeoPlacesClientConfiguration, geoRoutesClientConfig: GeoRoutesClient.GeoRoutesClientConfiguration, locationClientConfig: LocationClient.LocationClientConfiguration) {
+        self.geoMapsClientConfig = geoMapsClientConfig
+        self.geoPlacesClientConfig = geoPlacesClientConfig
+        self.geoRoutesClientConfig = geoRoutesClientConfig
         self.locationClientConfig = locationClientConfig
     }
 
@@ -19,12 +28,18 @@ import SmithyHTTPAuthAPI
         let authScheme: AuthScheme = ApiKeyAuthScheme()
         let authSchemes: [AuthScheme] = [authScheme]
         
+        let geoMapsClientConfig = try await GeoMapsClient.GeoMapsClientConfiguration(region: region, authSchemes: authSchemes, authSchemeResolver: resolver)
+        let geoPlacesClientConfig = try await GeoPlacesClient.GeoPlacesClientConfiguration(region: region, authSchemes: authSchemes, authSchemeResolver: resolver)
+        let geoRoutesClientConfig = try await GeoRoutesClient.GeoRoutesClientConfiguration(region: region, authSchemes: authSchemes, authSchemeResolver: resolver)
         let locationClientConfig = try await LocationClient.LocationClientConfiguration(region: region, authSchemes: authSchemes, authSchemeResolver: resolver)
         
         // This HTTP interceptor will inject the API key for all requests
+        geoMapsClientConfig.addInterceptorProvider(APIKeyInterceptorProvider(apiKey: apiKey))
+        geoPlacesClientConfig.addInterceptorProvider(APIKeyInterceptorProvider(apiKey: apiKey))
+        geoRoutesClientConfig.addInterceptorProvider(APIKeyInterceptorProvider(apiKey: apiKey))
         locationClientConfig.addInterceptorProvider(APIKeyInterceptorProvider(apiKey: apiKey))
         
-        let authHelper = AuthHelper(locationClientConfig: locationClientConfig)
+        let authHelper = AuthHelper(geoMapsClientConfig: geoMapsClientConfig, geoPlacesClientConfig: geoPlacesClientConfig, geoRoutesClientConfig: geoRoutesClientConfig, locationClientConfig: locationClientConfig)
         
         return authHelper
     }
@@ -51,15 +66,30 @@ import SmithyHTTPAuthAPI
             resolver = try StaticAWSCredentialIdentityResolver(credentialsIdentity)
         }
 
+        let geoMapsClientConfig = try await GeoMapsClient.GeoMapsClientConfiguration(awsCredentialIdentityResolver: resolver, region: region, signingRegion: region)
+        let geoPlacesClientConfig = try await GeoPlacesClient.GeoPlacesClientConfiguration(awsCredentialIdentityResolver: resolver, region: region, signingRegion: region)
+        let geoRoutesClientConfig = try await GeoRoutesClient.GeoRoutesClientConfiguration(awsCredentialIdentityResolver: resolver, region: region, signingRegion: region)
         let locationClientConfig = try await LocationClient.LocationClientConfiguration(awsCredentialIdentityResolver: resolver, region: region, signingRegion: region)
 
-        let authHelper = AuthHelper(locationClientConfig: locationClientConfig)
+        let authHelper = AuthHelper(geoMapsClientConfig: geoMapsClientConfig, geoPlacesClientConfig: geoPlacesClientConfig, geoRoutesClientConfig: geoRoutesClientConfig, locationClientConfig: locationClientConfig)
 
         // Store the cognito credentials provider so that it can refresh the credentials
         // if they are about to expire
         authHelper.cognitoCredentialsProvider = cognitoProvider
 
         return authHelper
+    }
+    
+    public func getGeoMapsClientConfig() -> GeoMapsClient.GeoMapsClientConfiguration {
+        return self.geoMapsClientConfig
+    }
+    
+    public func getGeoPlacesClientConfig() -> GeoPlacesClient.GeoPlacesClientConfiguration {
+        return self.geoPlacesClientConfig
+    }
+    
+    public func getGeoRoutesClientConfig() -> GeoRoutesClient.GeoRoutesClientConfiguration {
+        return self.geoRoutesClientConfig
     }
     
     public func getLocationClientConfig() -> LocationClient.LocationClientConfiguration {
