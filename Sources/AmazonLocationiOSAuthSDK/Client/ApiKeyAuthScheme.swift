@@ -11,7 +11,7 @@ public struct ApiKeyAuthScheme: AuthScheme {
     
     public init() {
         // This signer isn't actually used, since the AuthSchemeMiddleware will set signer to nil on the SelectedAuthScheme
-        // when smithy.api#noAuth is specified, but it is required to confirm to the AuthScheme protocol
+        // when smithy.api#noAuth is specified, but it is required to conform to the AuthScheme protocol
         self.signer = ApiKeySigner()
     }
     

@@ -6,6 +6,7 @@ import SmithyHTTPAuthAPI
 
 @objc public class AuthHelper: NSObject {
     private var locationClientConfig: LocationClient.LocationClientConfiguration
+    private var cognitoCredentialsProvider: AmazonLocationCognitoCredentialsProvider?
 
     public init(locationClientConfig: LocationClient.LocationClientConfiguration) {
         self.locationClientConfig = locationClientConfig
@@ -27,27 +28,38 @@ import SmithyHTTPAuthAPI
         
         return authHelper
     }
-    
-    @objc static public func withIdentityPoolId(identityPoolId: String) async throws -> AuthHelper? {
+
+    @objc static public func withIdentityPoolId(identityPoolId: String) async throws -> AuthHelper {
+        // If only the identityPoolId is passed, use its region for both the cognito credentials
+        // and the region for our location client configurations
         let region = AmazonLocationRegion.toRegionString(identityPoolId: identityPoolId)
-        let cognitoProvider = AmazonLocationCognitoCredentialsProvider(identityPoolId: identityPoolId, region: region)
+
+        return try await withIdentityPoolId(identityPoolId: identityPoolId, region: region)
+    }
+    
+    @objc static public func withIdentityPoolId(identityPoolId: String, region: String) async throws -> AuthHelper {
+        // Always use the region from the identityPoolId for retrieving cognito credentials
+        let cognitoRegion = AmazonLocationRegion.toRegionString(identityPoolId: identityPoolId)
+        let cognitoProvider = AmazonLocationCognitoCredentialsProvider(identityPoolId: identityPoolId, region: cognitoRegion)
 
         // Make sure credentials are refreshed
         try await cognitoProvider.refreshCognitoCredentialsIfExpired()
 
+        var resolver: StaticAWSCredentialIdentityResolver?
         if let credentials = cognitoProvider.getCognitoCredentials() {
             let credentialsIdentity = AWSCredentialIdentity(accessKey: credentials.accessKeyId, secret: credentials.secretKey, expiration: credentials.expiration, sessionToken: credentials.sessionToken)
-            let resolver: StaticAWSCredentialIdentityResolver? =  try StaticAWSCredentialIdentityResolver(credentialsIdentity)
-            
-            let locationClientConfig = try await LocationClient.LocationClientConfiguration(awsCredentialIdentityResolver: resolver, region: region, signingRegion: region)
-            
-            let authHelper = AuthHelper(locationClientConfig: locationClientConfig)
-            
-            return authHelper
+            resolver = try StaticAWSCredentialIdentityResolver(credentialsIdentity)
         }
-        
-        // If we failed to get the Cognito credentials, an error would've already been thrown above
-        return nil
+
+        let locationClientConfig = try await LocationClient.LocationClientConfiguration(awsCredentialIdentityResolver: resolver, region: region, signingRegion: region)
+
+        let authHelper = AuthHelper(locationClientConfig: locationClientConfig)
+
+        // Store the cognito credentials provider so that it can refresh the credentials
+        // if they are about to expire
+        authHelper.cognitoCredentialsProvider = cognitoProvider
+
+        return authHelper
     }
     
     public func getLocationClientConfig() -> LocationClient.LocationClientConfiguration {
