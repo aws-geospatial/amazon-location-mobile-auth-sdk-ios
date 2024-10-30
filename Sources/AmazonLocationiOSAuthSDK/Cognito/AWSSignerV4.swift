@@ -10,6 +10,37 @@ import struct Foundation.TimeZone
 import struct Foundation.URL
 import struct Foundation.URLComponents
 
+public enum HTTPMethod: String {
+    case GET
+    case POST
+    case PUT
+    case DELETE
+}
+
+public struct HTTPHeaders {
+    private var headers: [String: String]
+
+    public init() {
+        headers = [:]
+    }
+
+    mutating func add(name: String, value: String) {
+        headers[name] = value
+    }
+
+    mutating func remove(name: String) {
+        headers.removeValue(forKey: name)
+    }
+
+    func value(forName name: String) -> String? {
+        return headers[name]
+    }
+
+    func allHeaders() -> [String: String] {
+        return headers
+    }
+}
+
 public struct TimeAmount: Hashable {
     @available(*, deprecated, message: "This typealias doesn't serve any purpose. Please use Int64 directly.")
     public typealias Value = Int64
