@@ -40,9 +40,7 @@ let package = Package(
                     path: "Sources"),
         .testTarget(
             name: "AmazonLocationiOSAuthSDKTests",
-            dependencies: ["AmazonLocationiOSAuthSDK"],
-            resources: [
-                .process("TestConfig.plist")
-            ]),
+            dependencies: ["AmazonLocationiOSAuthSDK"]
+        ),
     ]
 )
