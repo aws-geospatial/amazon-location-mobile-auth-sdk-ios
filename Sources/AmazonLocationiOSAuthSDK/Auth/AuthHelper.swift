@@ -8,10 +8,10 @@ import SmithyIdentity
 import SmithyHTTPAuthAPI
 
 @objc public class AuthHelper: NSObject {
-    private var geoMapsClientConfig: GeoMapsClient.GeoMapsClientConfiguration
-    private var geoPlacesClientConfig: GeoPlacesClient.GeoPlacesClientConfiguration
-    private var geoRoutesClientConfig: GeoRoutesClient.GeoRoutesClientConfiguration
-    private var locationClientConfig: LocationClient.LocationClientConfiguration
+    internal var geoMapsClientConfig: GeoMapsClient.GeoMapsClientConfiguration
+    internal var geoPlacesClientConfig: GeoPlacesClient.GeoPlacesClientConfiguration
+    internal var geoRoutesClientConfig: GeoRoutesClient.GeoRoutesClientConfiguration
+    internal var locationClientConfig: LocationClient.LocationClientConfiguration
     private var cognitoCredentialsProvider: AmazonLocationCognitoCredentialsProvider?
 
     public init(geoMapsClientConfig: GeoMapsClient.GeoMapsClientConfiguration, geoPlacesClientConfig: GeoPlacesClient.GeoPlacesClientConfiguration, geoRoutesClientConfig: GeoRoutesClient.GeoRoutesClientConfiguration, locationClientConfig: LocationClient.LocationClientConfiguration) {
@@ -96,3 +96,5 @@ import SmithyHTTPAuthAPI
         return self.locationClientConfig
     }
 }
+
+extension AuthHelper: AuthHelperProtocol { }

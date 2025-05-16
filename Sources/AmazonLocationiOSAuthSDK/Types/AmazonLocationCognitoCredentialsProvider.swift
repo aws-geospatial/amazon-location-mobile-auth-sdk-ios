@@ -61,8 +61,10 @@ import Foundation
         }
     }
     
-    private func setCognitoCredentials(cognitoCredentials: CognitoCredentials) {
+    internal func setCognitoCredentials(cognitoCredentials: CognitoCredentials) {
         self.cognitoCredentials = cognitoCredentials
         KeyChainHelper.save(value: CognitoCredentials.encodeCognitoCredentials(credential: cognitoCredentials)!, key: .CognitoCredentials)
     }
 }
+
+extension AmazonLocationCognitoCredentialsProvider: AmazonLocationCognitoCredentialsProviderProtocol { }
