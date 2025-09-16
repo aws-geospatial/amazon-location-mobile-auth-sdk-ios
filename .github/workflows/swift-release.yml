@@ -10,8 +10,3 @@ jobs:
     permissions:
       contents: write
     uses: aws-geospatial/github-workflows-for-amazon-location/.github/workflows/swift-release.yml@main
-    with:
-      working-directory: "."
-      release-tag-prefix: "v"
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
