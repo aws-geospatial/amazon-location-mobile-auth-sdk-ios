@@ -42,6 +42,13 @@ To send us a pull request, please:
 GitHub provides additional document on [forking a repository](https://help.github.com/articles/fork-a-repo/) and
 [creating a pull request](https://help.github.com/articles/creating-a-pull-request/).
 
+## Version Release
+
+To release an updated version of the package follow the same steps mentioned above and:
+
+- Modify the version inside Package.version file
+- Include detailed description of changes in changelog file with latest version.
+
 ## Finding contributions to work on
 
 Looking at the existing issues is a great way to find something to contribute on. As our projects, by default, use the
