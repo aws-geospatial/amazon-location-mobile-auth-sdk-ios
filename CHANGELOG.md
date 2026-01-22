@@ -1,3 +1,9 @@
+# 1.0.1
+
+### ✨ Features and improvements
+
+- Updated `aws-sdk-swift` dependency to latest to version `1.6.37` to resolve [security vulnerability](https://github.com/aws-geospatial/amazon-location-mobile-auth-sdk-ios/security/dependabot/1)
+
 # 1.0.0
 
 ### ⚠️ Breaking changes
