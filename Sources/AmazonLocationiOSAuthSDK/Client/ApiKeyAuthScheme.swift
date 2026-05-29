@@ -1,3 +1,4 @@
+import Foundation
 import ClientRuntime
 import SmithyHTTPAuthAPI
 import Smithy
@@ -65,9 +66,11 @@ public class APIKeyInterceptor<InputType, OutputType>: Interceptor {
     public typealias ResponseType = HTTPResponse
     
     private var apiKey: String
+    private var bundleId: String?
 
     public init(apiKey: String) {
         self.apiKey = apiKey
+        self.bundleId = Bundle.main.bundleIdentifier
     }
 
     // Use the HTTP interceptor to inject the API key "key" query param into requests
@@ -85,16 +88,21 @@ public class APIKeyInterceptor<InputType, OutputType>: Interceptor {
             }
         }
         
+        let requestBuilder = context.getRequest().toBuilder()
+        
+        // Add Apple Bundle ID header for API key restrictions
+        if let bundleId = bundleId {
+            requestBuilder.withHeader(name: "X-Apple-Bundle-Id", value: bundleId)
+        }
+        
         // If the request was missing an apiKey, then we add it to the request
         // directly through the query parameters
         if (!apiKeyExists) {
             let apiKeyQueryItem = URIQueryItem(name: apiKeyName, value: apiKey)
-            
-            let requestBuilder = context.getRequest().toBuilder()
             requestBuilder.withQueryItem(apiKeyQueryItem)
-            
-            context.updateRequest(updated: requestBuilder.build())
         }
+        
+        context.updateRequest(updated: requestBuilder.build())
     }
 }
 

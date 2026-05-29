@@ -95,6 +95,19 @@ func locationExample() {
 }
 ```
 
+### Using API Key Apple App Restrictions
+
+If your API key is configured with [Apple app restrictions](https://docs.aws.amazon.com/location/latest/developerguide/using-apikeys.html), the SDK automatically attaches the required `X-Apple-Bundle-Id` header to all API key requests made through the SDK clients. The SDK reads the bundle identifier from your app automatically.
+
+For MapLibre map tile requests, use `MapLibreHTTPProvider`:
+
+```swift
+import AmazonLocationiOSAuthSDK
+
+// Call before creating any MLNMapView
+MapLibreHTTPProvider.configureMapLibre()
+```
+
 ### Amazon Cognito
 
 Here is an example using the standalone `Places` SDK with the [Amazon Cognito](https://docs.aws.amazon.com/location/latest/developerguide/authenticating-using-cognito.html) authentication method:
