@@ -1,5 +1,17 @@
 # 1.0.1
 
+## 1.1.0
+
+### ✨ Features and improvements
+
+- Several dependency version updates
+
+- fix auto release workflow for ios versions to correctly read existing release versions
+- Add unit tests for APIKeyInterceptor bundle ID header
+- Add X-Apple-Bundle-Id header to API key requests
+- Add two workflows; one to automate release, the second to retry failed dependabot pr creation
+
+
 ### ✨ Features and improvements
 
 - Updated `aws-sdk-swift` dependency to latest to version `1.6.37` to resolve [security vulnerability](https://github.com/aws-geospatial/amazon-location-mobile-auth-sdk-ios/security/dependabot/1)
