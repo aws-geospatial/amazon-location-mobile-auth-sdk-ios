@@ -1,3 +1,11 @@
+# 1.1.1
+
+### ✨ Features and improvements
+
+- Several dependency version updates
+
+- Bump github.com/apple/swift-nio from 2.93.0 to 2.101.0
+
 # 1.1.0
 
 ### ✨ Features and improvements
