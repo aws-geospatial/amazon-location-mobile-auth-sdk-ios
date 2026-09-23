@@ -187,6 +187,40 @@ func locationExample() {
 }
 ```
 
+### Custom Credentials
+
+If your credentials come from a source other than a Cognito Identity Pool or an API key — for example, short-lived, scoped SigV4 credentials vended by your own backend (STS `AssumeRole` with an inline session policy) — use `AuthHelper.withCredentialsProvider(credentialsProvider:region:)`. It accepts any [`AWSCredentialIdentityResolver`](https://github.com/smithy-lang/smithy-swift), so you can supply either a static resolver or one that refreshes short-lived credentials.
+
+```swift
+import AmazonLocationiOSAuthSDK
+import AWSLocation
+import SmithyIdentity
+
+func customCredentialsExample() async throws {
+    let region = "<Region>"
+
+    // Build a resolver from credentials your app obtained (e.g. from your backend / STS)
+    let credentialsIdentity = AWSCredentialIdentity(
+        accessKey: "<Access key>",
+        secret: "<Secret key>",
+        expiration: nil,          // set the STS expiration if you have it
+        sessionToken: "<Session token>"
+    )
+    let resolver = try StaticAWSCredentialIdentityResolver(credentialsIdentity)
+
+    // Create an authentication helper using the custom credentials resolver
+    let authHelper = try await AuthHelper.withCredentialsProvider(credentialsProvider: resolver, region: region)
+
+    // Configure any client to sign requests with these credentials
+    let client: LocationClient = LocationClient(config: authHelper.getLocationClientConfig())
+
+    let input = AWSLocation.ListGeofencesInput(collectionName: "<Collection name>")
+    let output = try await client.listGeofences(input: input)
+}
+```
+
+> To keep short-lived credentials valid over time, supply an `AWSCredentialIdentityResolver` that returns fresh credentials on each resolution rather than a one-time static resolver.
+
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
