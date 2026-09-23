@@ -1,3 +1,9 @@
+# 1.2.0
+
+### ✨ Features and improvements
+
+- Add `AuthHelper.withCredentialsProvider(credentialsProvider:region:)` to create an `AuthHelper` from a custom AWS credentials resolver, enabling authentication with credentials from sources other than a Cognito Identity Pool or API key (for example, short-lived SigV4 credentials vended by a backend)
+
 # 1.1.1
 
 ### ✨ Features and improvements
