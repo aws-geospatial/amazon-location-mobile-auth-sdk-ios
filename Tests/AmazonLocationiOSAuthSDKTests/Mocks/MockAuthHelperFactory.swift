@@ -4,6 +4,7 @@ import AWSGeoPlaces
 import AWSGeoRoutes
 import AWSLocation
 import SmithyHTTPAuthAPI
+import SmithyIdentity
 
 class MockAuthHelperFactory: AuthHelperFactoryProtocol {    
     func makeWithApiKey(apiKey: String, region: String) async throws -> AuthHelperProtocol {
@@ -20,6 +21,15 @@ class MockAuthHelperFactory: AuthHelperFactoryProtocol {
         geoPlacesClientConfig.addInterceptorProvider(APIKeyInterceptorProvider(apiKey: apiKey))
         geoRoutesClientConfig.addInterceptorProvider(APIKeyInterceptorProvider(apiKey: apiKey))
         locationClientConfig.addInterceptorProvider(APIKeyInterceptorProvider(apiKey: apiKey))
+        
+        return MockAuthHelper(geoMapsClientConfig: geoMapsClientConfig, geoPlacesClientConfig: geoPlacesClientConfig, geoRoutesClientConfig: geoRoutesClientConfig, locationClientConfig: locationClientConfig)
+    }
+    
+    func makeWithCredentialsProvider(credentialsProvider: any AWSCredentialIdentityResolver, region: String) async throws -> AuthHelperProtocol {
+        let geoMapsClientConfig = try await GeoMapsClient.GeoMapsClientConfiguration(awsCredentialIdentityResolver: credentialsProvider, region: region, signingRegion: region)
+        let geoPlacesClientConfig = try await GeoPlacesClient.GeoPlacesClientConfiguration(awsCredentialIdentityResolver: credentialsProvider, region: region, signingRegion: region)
+        let geoRoutesClientConfig = try await GeoRoutesClient.GeoRoutesClientConfiguration(awsCredentialIdentityResolver: credentialsProvider, region: region, signingRegion: region)
+        let locationClientConfig = try await LocationClient.LocationClientConfiguration(awsCredentialIdentityResolver: credentialsProvider, region: region, signingRegion: region)
         
         return MockAuthHelper(geoMapsClientConfig: geoMapsClientConfig, geoPlacesClientConfig: geoPlacesClientConfig, geoRoutesClientConfig: geoRoutesClientConfig, locationClientConfig: locationClientConfig)
     }

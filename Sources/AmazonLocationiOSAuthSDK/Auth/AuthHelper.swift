@@ -44,6 +44,43 @@ import SmithyHTTPAuthAPI
         return authHelper
     }
 
+    /// Creates an `AuthHelper` using a custom AWS credentials resolver.
+    ///
+    /// Use this when your credentials come from a source other than a Cognito Identity Pool
+    /// or an API key — for example, short-lived SigV4 credentials vended by your own backend
+    /// (STS AssumeRole with an inline session policy).
+    ///
+    /// The provided resolver is used to sign all requests. To support refreshing short-lived
+    /// credentials, supply a resolver that returns fresh credentials on each resolution rather
+    /// than a static one.
+    ///
+    /// Example building a static resolver from credentials you already hold:
+    /// ```swift
+    /// let credentialsIdentity = AWSCredentialIdentity(
+    ///     accessKey: accessKey,
+    ///     secret: secretKey,
+    ///     expiration: expiration,
+    ///     sessionToken: sessionToken
+    /// )
+    /// let resolver = try StaticAWSCredentialIdentityResolver(credentialsIdentity)
+    /// let authHelper = try await AuthHelper.withCredentialsProvider(credentialsProvider: resolver, region: "us-east-1")
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - credentialsProvider: An `AWSCredentialIdentityResolver` used to sign requests.
+    ///   - region: The AWS region as a string.
+    /// - Returns: An `AuthHelper` configured to use the provided credentials resolver.
+    static public func withCredentialsProvider(credentialsProvider: any AWSCredentialIdentityResolver, region: String) async throws -> AuthHelper {
+        let geoMapsClientConfig = try await GeoMapsClient.GeoMapsClientConfiguration(awsCredentialIdentityResolver: credentialsProvider, region: region, signingRegion: region)
+        let geoPlacesClientConfig = try await GeoPlacesClient.GeoPlacesClientConfiguration(awsCredentialIdentityResolver: credentialsProvider, region: region, signingRegion: region)
+        let geoRoutesClientConfig = try await GeoRoutesClient.GeoRoutesClientConfiguration(awsCredentialIdentityResolver: credentialsProvider, region: region, signingRegion: region)
+        let locationClientConfig = try await LocationClient.LocationClientConfiguration(awsCredentialIdentityResolver: credentialsProvider, region: region, signingRegion: region)
+
+        let authHelper = AuthHelper(geoMapsClientConfig: geoMapsClientConfig, geoPlacesClientConfig: geoPlacesClientConfig, geoRoutesClientConfig: geoRoutesClientConfig, locationClientConfig: locationClientConfig)
+
+        return authHelper
+    }
+
     @objc static public func withIdentityPoolId(identityPoolId: String) async throws -> AuthHelper {
         // If only the identityPoolId is passed, use its region for both the cognito credentials
         // and the region for our location client configurations
